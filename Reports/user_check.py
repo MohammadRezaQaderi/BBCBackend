@@ -5,7 +5,7 @@ from datetime import datetime
 conn = pyodbc.connect(
     driver='ODBC Driver 17 for SQL Server',
     server='localhost,1433',
-    database='ERS',
+    database='BBC',
     uid='mgh27',
     pwd='m2711gH9985',
     TrustServerCertificate='yes'

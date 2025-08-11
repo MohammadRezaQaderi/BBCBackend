@@ -29,7 +29,7 @@ def get_payment_report(start_date=None, end_date=None):
         conn = pyodbc.connect(
             driver='SQL Server',
             server='localhost,1433',
-            database='ERS',
+            database='BBC',
             uid='mgh27',
             pwd='m2711gH9985',
             TrustServerCertificate='yes'

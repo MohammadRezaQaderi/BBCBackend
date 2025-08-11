@@ -266,7 +266,7 @@ def search_fields(conn, cursor, data, info):
         field = data["field"]
         second_field = data["secondField"]
         native_province = data["nativeProvince"]
-        query = 'SELECT rank_zaban, rank_honar, finalized FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT rank_zaban, rank_honar, finalized FROM BBC.dbo.stu WHERE user_id = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
@@ -359,607 +359,6 @@ def search_fields(conn, cursor, data, info):
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
                                values=values_log)
         return None, [], "مشکلی در جستجوی شما موجود هست."
-
-
-def search_fields_estimate(conn, cursor, data, info):
-    values = ()
-    try:
-        accept_way = data["acceptWay"]
-        provinces = data["provinces"]
-        cities = data["cities"]
-        university_name = data["universityName"]
-        field_name = data["fieldName"]
-        period_type = data["periodType"]
-        acceptance_chance = data["acceptanceChance"]
-        service_commitment = data["serviceCommitment"]
-        sex = data["sex"]
-        rank_in_all = data["rank_in_all"]
-        quota = data["quota"]
-        field = data["field"]
-        second_field = data["secondField"]
-        native_province = data["nativeProvince"]
-        query = 'SELECT rank_zaban, rank_honar, finalized FROM ERS.dbo.stu WHERE user_id = ?'
-        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        if res_user is None:
-            return None, None, "این دانش‌آموز ثبت نشده است."
-        if second_field != "NULL":
-            field = second_field
-            if int(second_field) == 4:
-                if res_user[0] == 0:
-                    return None, None, "شما رشته زبان را انتخاب نکرده‌اید."
-            else:
-                if res_user[1] == 0:
-                    return None, None, "شما رشته هنر را انتخاب نکرده‌اید."
-        if accept_way == "NULL":
-            accept_way = None
-        if acceptance_chance == "NULL":
-            acceptance_chance = None
-        # if res_user[2] == 0:
-        #     return None, None, "اطلاعات ثبت نهایی نشده است."
-        fields = []
-        tracking_code = str(uuid.uuid4())
-        cit = None
-        if len(cities) >= 1:
-            cit = ""
-            for i, city in enumerate(cities):
-                if i != len(cities) - 1:
-                    cit = cit + city + ','
-                else:
-                    cit = cit + city
-        prov = None
-        if len(provinces) >= 1:
-            prov = ""
-            for i, province in enumerate(provinces):
-                if i != len(provinces) - 1:
-                    prov = prov + province + ','
-                else:
-                    prov = prov + province
-        periods = None
-        if len(period_type) >= 1:
-            periods = ""
-            for i, period in enumerate(period_type):
-                if i != len(period_type) - 1:
-                    periods = periods + period + ','
-                else:
-                    periods = periods + period
-        uni_name = None
-        if len(university_name) >= 1:
-            uni_name = ""
-            for i, name in enumerate(university_name):
-                if i != len(university_name) - 1:
-                    uni_name = uni_name + name + ','
-                else:
-                    uni_name = uni_name + name
-        fil_name = None
-        if len(field_name) >= 1:
-            fil_name = ""
-            for i, fil in enumerate(field_name):
-                if i != len(field_name) - 1:
-                    fil_name = fil_name + fil + ','
-                else:
-                    fil_name = fil_name + fil
-        sql = 'exec Note.dbo.Get_Fields ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
-        values = (
-            field, None, None, prov, cit, None, None, sex, quota, fil_name, uni_name, rank_in_all, accept_way,
-            service_commitment, acceptance_chance, periods, native_province, None, 1000, None, "ALLNOTES",
-            None, None, None
-        )
-        cursor.execute(sql, values)
-        recs = cursor.fetchall()
-        cursor.commit()
-        for res in recs:
-            cap = res[19]
-            if res[19] is None:
-                cap = res[20]
-            response = {
-                'filedCode': res[1], 'field': res[7], 'city': res[5] + "-" + res[6], 'university': res[8],
-                'admission': res[10],
-                'kind': res[11],
-                'obligation': res[13], 'period': res[12],
-                'explain': res[14], 'admissionKind': res[21],
-                'capacity': cap,
-            }
-            fields.append(response)
-        return tracking_code, fields, ""
-    except Exception as e:
-        print(e)
-        field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
-        values_log = (
-            info["user_id"], info["phone"], "Estimate_Get_Fields",
-            json.dumps(values, ensure_ascii=False),
-            json.dumps(data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
-                               values=values_log)
-        return None, [], "مشکلی در جستجوی شما رخ داده"
-
-
-# gl list check
-def update_spgl(conn, cursor, data, info):
-    values = ()
-    try:
-        special_list = data["special_list"]
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        if res_student is None:
-            return None, "اطلاعات شما یافت نشد."
-        query = 'SELECT list_id FROM ERS.dbo.spgl WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        field = '([user_id], [field], [special_list], [phone])'
-        if res_list is not None:
-            db_helper.delete_record(
-                conn, cursor, "spgl",
-                ["user_id"],
-                [info["user_id"]]
-            )
-        values = (
-            info["user_id"], res_student[0], special_list, info["phone"],)
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='spgl', fields=field,
-                               values=values)
-        token = str(uuid.uuid4())
-        return token, "لیست شما با موفقیت تغییر یافت."
-    except Exception as e:
-        print(e)
-        field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
-        values_log = (
-            info["user_id"], info["phone"], "update_spgl",
-            json.dumps(values, ensure_ascii=False),
-            json.dumps(data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
-                               values=values_log)
-        return None, "لیست شما تغییر پیدا نکرد لطفا دوباره تلاش کنید."
-
-
-def get_spgl(conn, cursor, data, info):
-    try:
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        if res_student is None:
-            return None, []
-        query = 'SELECT special_list FROM ERS.dbo.spgl WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        token = str(uuid.uuid4())
-        if res_list is None:
-            return token, []
-        return token, json.loads(res_list[0])
-    except Exception as e:
-        print(e)
-        field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
-        values_log = (
-            info["user_id"], info["phone"], "get_spgl",
-            json.dumps([], ensure_ascii=False),
-            json.dumps(data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
-                               values=values_log)
-        return None, []
-
-
-def update_trgl(conn, cursor, data, info):
-    values = ()
-    try:
-        trash_list = data["trash_list"]
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        if res_student is None:
-            return None, "اطلاعات شما یافت نشد."
-        query = 'SELECT list_id FROM ERS.dbo.trgl WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        field = '([user_id], [field], [trash_list], [phone])'
-        if res_list is not None:
-            db_helper.delete_record(
-                conn, cursor, "trgl",
-                ["user_id"],
-                [info["user_id"]]
-            )
-        values = (
-            info["user_id"], res_student[0], trash_list, info["phone"],)
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='trgl', fields=field,
-                               values=values)
-        token = str(uuid.uuid4())
-        return token, "لیست شما با موفقیت تغییر یافت."
-    except Exception as e:
-        print(e)
-        field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
-        values_log = (
-            info["user_id"], info["phone"], "update_trgl",
-            json.dumps(values, ensure_ascii=False),
-            json.dumps(data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
-                               values=values_log)
-        return None, "لیست شما تغییر پیدا نکرد لطفا دوباره تلاش کنید."
-
-
-def get_trgl(conn, cursor, data, info):
-    try:
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        if res_student is None:
-            return None, []
-        query = 'SELECT trash_list FROM ERS.dbo.trgl WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        token = str(uuid.uuid4())
-        if res_list is None:
-            return token, []
-        return token, json.loads(res_list[0])
-    except Exception as e:
-        print(e)
-        field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
-        values_log = (
-            info["user_id"], info["phone"], "get_trgl",
-            json.dumps([], ensure_ascii=False),
-            json.dumps(data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
-                               values=values_log)
-        return None, []
-
-
-# glf list check
-def get_farhangian_majors(cursor, data):
-    provinces = data["provinces"]
-    cities = data["cities"]
-    university_name = data["universityName"]
-    sex = data["sex"]
-    field = data["field"]
-    second_field = data["secondField"]
-    native_province = data["nativeProvince"]
-    uni_name = None
-    if len(university_name) >= 1:
-        uni_name = ""
-        for i, name in enumerate(university_name):
-            if i != len(university_name) - 1:
-                uni_name = uni_name + name + ','
-            else:
-                uni_name = uni_name + name
-    if second_field != "NULL":
-        field = second_field
-    province = None
-    if len(provinces) >= 1:
-        province = ""
-        for i, pro in enumerate(provinces):
-            if i != len(provinces) - 1:
-                province = province + pro + ','
-            else:
-                province = province + pro
-    city = None
-    if len(cities) >= 1:
-        city = ""
-        for i, cit in enumerate(cities):
-            if i != len(cities) - 1:
-                city = city + cit + ','
-            else:
-                city = city + cit
-    sql = 'exec Note.dbo.Get_Majors ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
-    values = (field, province, city, uni_name, sex, native_province, None, None, None, "FARHANGIAN")
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    majors = []
-    tracking_code = str(uuid.uuid4())
-    if uni_name is None:
-        for res in recs:
-            majors.append(res[0])
-    else:
-        for res in recs:
-            majors.append(res[0])
-    return tracking_code, majors
-
-
-def get_farhangian_universities(cursor, data):
-    provinces = data["provinces"]
-    cities = data["cities"]
-    sex = data["sex"]
-    field = data["field"]
-    second_field = data["secondField"]
-    native_province = data["nativeProvince"]
-    if second_field != "NULL":
-        field = second_field
-    province = None
-    if len(provinces) >= 1:
-        province = ""
-        for i, pro in enumerate(provinces):
-            if i != len(provinces) - 1:
-                province = province + pro + ','
-            else:
-                province = province + pro
-    city = None
-    if len(cities) >= 1:
-        city = ""
-        for i, cit in enumerate(cities):
-            if i != len(cities) - 1:
-                city = city + cit + ','
-            else:
-                city = city + cit
-    sql = 'exec Note.dbo.Get_Universities ?, ?, ?, ?, ?, ?, ?, ?, ?'
-    values = (field, province, city, sex, native_province, None, None, None, "FARHANGIAN")
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    universities = []
-    tracking_code = str(uuid.uuid4())
-    if cities is None:
-        for res in recs:
-            universities.append(res[0])
-    else:
-        for res in recs:
-            universities.append(res[0])
-    return tracking_code, universities
-
-
-def get_farhangian_cities(cursor, data):
-    provinces = data["provinces"]
-    field = data["field"]
-    second_field = data["secondField"]
-    native_province = data["nativeProvince"]
-    if second_field != "NULL":
-        field = second_field
-    cities = None
-    if len(provinces) >= 1:
-        cities = ""
-        for i, province in enumerate(provinces):
-            if i != len(provinces) - 1:
-                cities = cities + province + ','
-            else:
-                cities = cities + province
-    sql = 'exec Note.dbo.Get_Cities ?, ?, ?, ?, ?, ?'
-    values = (field, cities, native_province, None, None, "FARHANGIAN")
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    city = []
-    tracking_code = str(uuid.uuid4())
-    for res in recs:
-        city.append(res[0])
-    return tracking_code, city
-
-
-def get_farhangian_provinces(cursor, data):
-    field = data["field"]
-    second_field = data["secondField"]
-    native_province = data["nativeProvince"]
-    if second_field != "NULL":
-        field = second_field
-    sql = 'exec Note.dbo.Get_Provinces ?, ?, ?, ?, ?'
-    values = (field, native_province, None, None, "FARHANGIAN")
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    provinces = []
-    tracking_code = str(uuid.uuid4())
-    for res in recs:
-        provinces.append(res[0])
-    return tracking_code, provinces
-
-
-def get_farhangian_duty_city(cursor, data):
-    provinces = data["provinces"]
-    native_province = data["nativeProvince"]
-    field = data["field"]
-    second_field = data["secondField"]
-    if second_field != "NULL":
-        field = second_field
-    cities = None
-    if len(provinces) >= 1:
-        cities = ""
-        for i, province in enumerate(provinces):
-            if i != len(provinces) - 1:
-                cities = cities + province + ','
-            else:
-                cities = cities + province
-    sql = 'exec Note.dbo.Get_DutyLocationCities ?, ?, ?, ?, ?'
-    values = (field, cities, native_province, None, "FARHANGIAN")
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    city = []
-    tracking_code = str(uuid.uuid4())
-    for res in recs:
-        city.append(res[0])
-    return tracking_code, city
-
-
-def get_farhangian_duty_province(cursor, data):
-    native_province = data["nativeProvince"]
-    field = data["field"]
-    second_field = data["secondField"]
-    if second_field != "NULL":
-        field = second_field
-    sql = 'exec Note.dbo.Get_DutyLoactionProvinces ?, ?, ?, ?'
-    values = (field, native_province, None, "FARHANGIAN")
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    provinces = []
-    tracking_code = str(uuid.uuid4())
-    for res in recs:
-        provinces.append(res[0])
-    return tracking_code, provinces
-
-
-def search_farhangian_fields(conn, cursor, data):
-    accept_way = data["acceptWay"]
-    provinces = data["provinces"]
-    cities = data["cities"]
-    university_name = data["universityName"]
-    field_name = data["fieldName"]
-    period_type = data["periodType"]
-    acceptance_chance = data["acceptanceChance"]
-    service_commitment = data["serviceCommitment"]
-    stu_id = data["stu_id"]
-    sex = data["sex"]
-    rank_in_all = data["rank_in_all"]
-    quota = data["quota"]
-    field = data["field"]
-    second_field = data["secondField"]
-    native_province = data["nativeProvince"]
-    duty_province = data["dutyProvinceName"]
-    duty_city = data["dutyCityName"]
-    query = 'SELECT rank_zaban, rank_honar, finalized FROM ERS.dbo.stu WHERE user_id = ?'
-    res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=stu_id)
-    if res_user is None:
-        return None, None, "این دانش‌آموز ثبت نشده است."
-    if second_field != "NULL":
-        field = second_field
-        if int(second_field) == 4:
-            if not res_user[0]:
-                return None, None, "شما رشته زبان را انتخاب نکرده‌اید."
-        else:
-            if not res_user[1]:
-                return None, None, "شما رشته هنر را انتخاب نکرده‌اید."
-    if accept_way == "NULL":
-        accept_way = None
-    if acceptance_chance == "NULL":
-        acceptance_chance = None
-    # if res_user[2] == 0:
-    #     return None, None, "اطلاعات ثبت نهایی نشده است."
-    fields = []
-    tracking_code = str(uuid.uuid4())
-    cit = None
-    if len(cities) >= 1:
-        cit = ""
-        for i, city in enumerate(cities):
-            if i != len(cities) - 1:
-                cit = cit + city + ','
-            else:
-                cit = cit + city
-    prov = None
-    if len(provinces) >= 1:
-        prov = ""
-        for i, province in enumerate(provinces):
-            if i != len(provinces) - 1:
-                prov = prov + province + ','
-            else:
-                prov = prov + province
-    periods = None
-    if len(period_type) >= 1:
-        periods = ""
-        for i, period in enumerate(period_type):
-            if i != len(period_type) - 1:
-                periods = periods + period + ','
-            else:
-                periods = periods + period
-    uni_name = None
-    if len(university_name) >= 1:
-        uni_name = ""
-        for i, name in enumerate(university_name):
-            if i != len(university_name) - 1:
-                uni_name = uni_name + name + ','
-            else:
-                uni_name = uni_name + name
-    fil_name = None
-    if len(field_name) >= 1:
-        fil_name = ""
-        for i, fil in enumerate(field_name):
-            if i != len(field_name) - 1:
-                fil_name = fil_name + fil + ','
-            else:
-                fil_name = fil_name + fil
-    duty_pro = None
-    if len(duty_province) >= 1:
-        duty_pro = ""
-        for i, dp in enumerate(duty_province):
-            if i != len(duty_province) - 1:
-                duty_pro = duty_pro + dp + ','
-            else:
-                duty_pro = duty_pro + dp
-    duty_cit = None
-    if len(duty_city) >= 1:
-        duty_cit = ""
-        for i, dc in enumerate(duty_city):
-            if i != len(duty_city) - 1:
-                duty_cit = duty_cit + dc + ','
-            else:
-                duty_cit = duty_cit + dc
-    sql = 'exec Note.dbo.Get_Fields ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
-    values = (
-        field, None, None, prov, cit, duty_pro, duty_cit, sex, quota, fil_name, uni_name, rank_in_all, accept_way,
-        service_commitment, acceptance_chance, periods, native_province, None, 1000, None, "FARHANGIAN",
-        None, None, None
-    )
-    cursor.execute(sql, values)
-    recs = cursor.fetchall()
-    cursor.commit()
-    for res in recs:
-        response = {
-            'filedCode': res[1], 'field': res[7], 'city': res[5] + "-" + res[6], 'university': res[8],
-            'admission': res[10],
-            'kind': res[11],
-            'duty': res[17] + "-" + res[18] + "-" + res[16],
-            'explain': res[14],
-            'capacity': res[19]
-        }
-        fields.append(response)
-    return tracking_code, fields, ""
-
-
-def update_spglf(conn, cursor, data, info):
-    special_list = data["special_list"]
-    query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-    res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    if res_student is None:
-        return None, "اطلاعات شما یافت نشد."
-    query = 'SELECT list_id FROM ERS.dbo.spglf WHERE user_id = ?'
-    res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    field = '([user_id], [field], [special_list], [phone])'
-    if res_list is not None:
-        db_helper.delete_record(
-            conn, cursor, "spglf",
-            ["user_id"],
-            [info["user_id"]]
-        )
-    values = (
-        info["user_id"], res_student[0], special_list, info["phone"],)
-    db_helper.insert_value(conn=conn, cursor=cursor, table_name='spglf', fields=field,
-                           values=values)
-    token = str(uuid.uuid4())
-    return token, "لیست شما با موفقیت تغییر یافت."
-
-
-def get_spglf(conn, cursor, data, info):
-    query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-    res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    if res_student is None:
-        return None, []
-    query = 'SELECT special_list FROM ERS.dbo.spglf WHERE user_id = ?'
-    res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    token = str(uuid.uuid4())
-    if res_list is None:
-        return token, []
-    return token, json.loads(res_list[0])
-
-
-def update_trglf(conn, cursor, data, info):
-    trash_list = data["trash_list"]
-    query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-    res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    if res_student is None:
-        return None, "اطلاعات شما یافت نشد."
-    query = 'SELECT list_id FROM ERS.dbo.trglf WHERE user_id = ?'
-    res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    field = '([user_id], [field], [trash_list], [phone])'
-    if res_list is not None:
-        db_helper.delete_record(
-            conn, cursor, "trglf",
-            ["user_id"],
-            [info["user_id"]]
-        )
-    values = (
-        info["user_id"], res_student[0], trash_list, info["phone"],)
-    db_helper.insert_value(conn=conn, cursor=cursor, table_name='trglf', fields=field,
-                           values=values)
-    token = str(uuid.uuid4())
-    return token, "لیست شما با موفقیت تغییر یافت."
-
-
-def get_trglf(conn, cursor, data, info):
-    query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
-    res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    if res_student is None:
-        return None, []
-    query = 'SELECT trash_list FROM ERS.dbo.trglf WHERE user_id = ?'
-    res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-    token = str(uuid.uuid4())
-    if res_list is None:
-        return token, []
-    return token, json.loads(res_list[0])
 
 
 # Free functionality
@@ -1102,7 +501,7 @@ def search_fields_fr(conn, cursor, data, info):
         dorm = data["Dorm"]
         field = data["field"]
         second_field = data["secondField"]
-        query = 'SELECT rank_zaban, rank_honar, finalized FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT rank_zaban, rank_honar, finalized FROM BBC.dbo.stu WHERE user_id = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
@@ -1178,11 +577,11 @@ def update_spfr(conn, cursor, data, info):
     values = ()
     try:
         special_list = data["special_list"]
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field FROM BBC.dbo.stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, "اطلاعات شما یافت نشد."
-        query = 'SELECT list_id FROM ERS.dbo.spfr WHERE user_id = ?'
+        query = 'SELECT list_id FROM BBC.dbo.spfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         field = '([user_id], [field], [special_list], [phone])'
         if res_list is not None:
@@ -1211,11 +610,11 @@ def update_spfr(conn, cursor, data, info):
 
 def get_spfr(conn, cursor, data, info):
     try:
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field FROM BBC.dbo.stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []
-        query = 'SELECT special_list FROM ERS.dbo.spfr WHERE user_id = ?'
+        query = 'SELECT special_list FROM BBC.dbo.spfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         token = str(uuid.uuid4())
         if res_list is None:
@@ -1237,11 +636,11 @@ def update_trfr(conn, cursor, data, info):
     values = ()
     try:
         trash_list = data["trash_list"]
-        query = 'SELECT field FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field FROM BBC.dbo.stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, "اطلاعات شما یافت نشد."
-        query = 'SELECT list_id FROM ERS.dbo.trfr WHERE user_id = ?'
+        query = 'SELECT list_id FROM BBC.dbo.trfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         field = '([user_id], [field], [trash_list], [phone])'
         if res_list is not None:
@@ -1270,11 +669,11 @@ def update_trfr(conn, cursor, data, info):
 
 def get_trfr(conn, cursor, data, info):
     try:
-        query = 'SELECT field, phone FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field, phone FROM BBC.dbo.stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []
-        query = 'SELECT trash_list FROM ERS.dbo.trfr WHERE user_id = ?'
+        query = 'SELECT trash_list FROM BBC.dbo.trfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         token = str(uuid.uuid4())
         if res_list is None:
@@ -1432,7 +831,7 @@ def search_fields_frb(conn, cursor, data, info):
         part_time = data["partTime"]
         dorm = data["Dorm"]
         field = data["field"]
-        query = 'SELECT finalized FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT finalized FROM BBC.dbo.stu WHERE user_id = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
@@ -1532,7 +931,7 @@ def get_spfrb(conn, cursor, data, info):
     try:
         field = data["field"]
         part = data["part"]
-        query = 'SELECT field, phone FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field, phone FROM BBC.dbo.stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []
@@ -1599,7 +998,7 @@ def get_trfrb(conn, cursor, data, info):
     try:
         field = data["field"]
         part = data["part"]
-        query = 'SELECT phone FROM ERS.dbo.stu WHERE user_id = ?'
+        query = 'SELECT phone FROM BBC.dbo.stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []

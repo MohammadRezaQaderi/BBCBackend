@@ -18,11 +18,11 @@ REDIS_PORT = 6379
 REDIS_PASSWORD = ''
 DB_CONN_STRING = (
     'DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost,1433;'
-    'DATABASE=ERS;UID=mgh27;PWD=m2711gH9985;'
+    'DATABASE=BBC;UID=mgh27;PWD=m2711gH9985;'
     'TrustServerCertificate=yes'
 )
-REPORTS_BASE_DIR = r'D:\WebSites\ERS\Reports'
-MEDIA_BASE_DIR = r'D:\WebSites\ERS\Media\InsPic'
+REPORTS_BASE_DIR = r'D:\WebSites\BBC\Reports'
+MEDIA_BASE_DIR = r'D:\WebSites\BBC\Media\InsPic'
 
 logging.basicConfig(
     level=logging.INFO,
@@ -100,7 +100,7 @@ class ReportScheduler:
         try:
             student_query = '''
                 SELECT user_id, phone, first_name, last_name, logo
-                FROM ERS.dbo.stu
+                FROM BBC.dbo.stu
                 WHERE user_id = ?
             '''
             student = db_helper.search_table(
@@ -108,7 +108,7 @@ class ReportScheduler:
             )
             logo_path = None
             if student.logo:
-                base_dir_pic = r'D:\WebSites\ERS\Media\UserPic'
+                base_dir_pic = r'D:\WebSites\BBC\Media\UserPic'
                 logo_path = os.path.join(base_dir_pic, student.logo)
             if not student:
                 raise ValueError(f"Student with ID {user_id} not found")
@@ -328,7 +328,7 @@ class ReportScheduler:
 
             suggested_other, suggested_names, other_names = self._process_suggested_fields(fields)
 
-            query = 'SELECT user_id FROM ERS.dbo.hedayat_fields WHERE user_id = ?'
+            query = 'SELECT user_id FROM BBC.dbo.hedayat_fields WHERE user_id = ?'
             exists = db_helper.search_table(self.db_conn, self.db_cursor, query, user_id)
 
             if exists is None:

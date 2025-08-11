@@ -143,8 +143,8 @@ async def update_api(request: Request):
                     "error": state_message}
         if action == "update_user":
             return update_user(conn, cursor, order_data["data"], info)
-        # elif action == "update_student_info":
-        #     return update_student_info(conn, cursor, order_data["data"], info)
+        elif action == "update_student_info":
+            return update_student_info(conn, cursor, order_data["data"], info)
         # elif action == "finalize_student_info":
         #     return finalize_student_info(conn, cursor, order_data["data"], info)
         elif action == "update_password":
@@ -154,9 +154,27 @@ async def update_api(request: Request):
             return {"status": 405, "tracking_code": None, "method_type": None,
                     "error": "سرویس مورد نظر در دسترس نیست."}
     except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/update_request", "bbc_api",
+            None, None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
         return {"status": 401, "tracking_code": None, "method_type": method_type,
                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-    except:
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/update_request", "bbc_api",
+            None, None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
         return {"status": 500, "tracking_code": None, "method_type": None,
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 

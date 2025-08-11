@@ -7,7 +7,7 @@ from Helper import db_helper
 from Users.Auth.auth import check_signin, token_remove
 from Users.Consultant.consultant import insert_con_stu, update_con_user_profile, update_con_password
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password
-from Users.Student.student import update_stu_user_profile, update_stu_password
+from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info
 
 uni_info = ["دانشگاه‌های شاخص سراسر کشور", "دانشگاه‌های برتر استان(های) بومی", "سایر دانشگاه‌های استان(های) بومی",
             "دانشگاه‌های برتر استان‌های همسایه", "سایر دانشگاه‌های استان‌های همسایه",
@@ -15,6 +15,27 @@ uni_info = ["دانشگاه‌های شاخص سراسر کشور", "دانشگ�
             "دانشگاه‌های برتر استان‌های با فاصله زیاد", "سایر دانشگاه‌های استان‌های با فاصله زیاد",
             "دانشگاه‌های برتر دیگر استان‌های کشور", "سایر دانشگاه‌های دیگر استان‌های کشور"]
 major_info = ["رشته‌های اولویت ۱", "رشته‌های اولویت ۲", "رشته‌های اولویت ۳", "رشته‌های اولویت ۴"]
+
+
+def check_user_request(conn, cursor, order_data, info):
+    try:
+        if info["role"] == "ins":
+            query = 'SELECT ins_id FROM BBC.dbo.stu WHERE user_id = ?'
+            res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+            if res.ins_id != info["user_id"]:
+                return False
+        elif info["role"] == "con":
+            query = 'SELECT con_id FROM BBC.dbo.stu WHERE user_id = ?'
+            res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+            if res.con_id != info["user_id"]:
+                return False
+        else:
+            if info["user_id"] != int(order_data["stu_id"]):
+                return False
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 
 def delete_token(conn, cursor, data, info):
@@ -219,6 +240,41 @@ def update_password(conn, cursor, order_data, info):
         return {"status": 200, "tracking_code": None, "method_type": None,
                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
+
+def update_student_info(conn, cursor, order_data, info):
+    try:
+        method_type = "UPDATE"
+        have_access = check_user_request(conn, cursor, order_data, info)
+        if not have_access:
+            return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
+        if info["role"] == ["ins", "con", "stu"]:
+            token, message, finalized = update_stu_info(conn, cursor, order_data, info, order_data["finalized"])
+            cursor.close()
+            conn.close()
+            if token:
+                return {"status": 200, "tracking_code": token, "method_type": method_type,
+                        "response": {"message": message, "finalized": finalized}}
+            else:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": message}
+        else:
+            cursor.close()
+            conn.close()
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "شما به این متد دسترسی ندارید."}
+    except Exception as e:
+        print(">>> user update_student_info error", e)
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "update_password", "bbc_api",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"
 #     if info["role"] == "ins":
@@ -293,15 +349,6 @@ def update_password(conn, cursor, order_data, info):
 #         conn.close()
 #         return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def update_student_info(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     token = update_stu_info(conn, cursor, order_data, info, 1)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"message": "اطلاعات شما با موفقیت تغییر یافت."}}
 #
 #
 # def finalize_student_info(conn, cursor, order_data, info):

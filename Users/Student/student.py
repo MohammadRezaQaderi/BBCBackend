@@ -113,22 +113,45 @@ def update_stu_password(conn, cursor, order_data, info):
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده"
 
-# def update_stu_info(conn, cursor, order_data, info, finalized):
-#     db_helper.update_record(
-#         conn, cursor, "stu", ['first_name', 'last_name', 'sex', 'city', 'birth_date', 'field', 'quota', 'full_number',
-#                               'rank', 'rank_all', 'last_rank', 'rank_zaban', 'full_number_zaban', 'rank_all_zaban',
-#                               'rank_honar', 'full_number_honar', 'rank_all_honar', 'finalized', 'edited_time'],
-#         [order_data["first_name"], order_data["last_name"], order_data["sex"], order_data["city"],
-#          order_data["birth_date"], order_data["field"], order_data["quota"],
-#          order_data["full_number"], order_data["rank"], order_data["rank_all"],
-#          order_data["last_rank"], order_data["rank_zaban"], order_data["full_number_zaban"],
-#          order_data["rank_all_zaban"], order_data["rank_honar"], order_data["full_number_honar"],
-#          order_data["rank_all_honar"], finalized, datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?",
-#         [str(info["user_id"])]
-#     )
-#     token = str(uuid.uuid4())
-#     return token
-#
+
+def update_stu_info(conn, cursor, order_data, info, finalized):
+    try:
+        query = 'SELECT finalized FROM ERNew.dbo.stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        update_finalized = finalized
+        if res.finalized == 0:
+            update_finalized = 1
+        else:
+            update_finalized = 2
+        row_count = db_helper.update_record(
+            conn, cursor, "stu",
+            ['first_name', 'last_name', 'sex', 'city', 'birth_date', 'field', 'quota', 'full_number',
+             'rank', 'rank_all', 'last_rank', 'rank_zaban', 'full_number_zaban', 'rank_all_zaban',
+             'rank_honar', 'full_number_honar', 'rank_all_honar', 'finalized', 'edited_time'],
+            [order_data["first_name"], order_data["last_name"], order_data["sex"], order_data["city"],
+             order_data["birth_date"], order_data["field"], order_data["quota"],
+             order_data["full_number"], order_data["rank"], order_data["rank_all"],
+             order_data["last_rank"], order_data["rank_zaban"], order_data["full_number_zaban"],
+             order_data["rank_all_zaban"], order_data["rank_honar"], order_data["full_number_honar"],
+             order_data["rank_all_honar"], update_finalized, datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "user_id = ?",
+            [str(order_data["stu_id"])]
+        )
+        if row_count > 0:
+            token = str(uuid.uuid4())
+            return token, "اطلاعات با موفقیت تغییر یافت.", update_finalized
+        else:
+            return None, "اطلاعات کاربر تغییر نیافت.", finalized
+    except Exception as e:
+        print(">>>> stu update_stu_info error", e)
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.user_id, None, "update_stu_password", "bbc_api",
+            None, None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, "مشکلی در تغییر اطلاعات پیش آمده", finalized
+
 #
 # def update_user_stu_pic(conn, cursor, order_data):
 #     method_type = "UPDATE"

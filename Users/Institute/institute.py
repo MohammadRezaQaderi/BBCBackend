@@ -1,0 +1,750 @@
+import uuid, redis
+from Helper import db_helper
+from datetime import datetime
+from Helper.func_helper import code_generator, id_generator, random_phone_number, password_format_check
+
+
+def select_ins_info(conn, cursor, user_id):
+    query = 'SELECT ins_id, name, phone, probability_permission, logo FROM ERNew.dbo.ins WHERE user_id = ?'
+    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
+    token = str(uuid.uuid4())
+    info = {
+        "phone": res[2], "user_id": user_id, "id": res[0], "name": res[1], "role": "ins", "pic": res[4],
+        "permission": res[3]
+    }
+    return token, info
+
+
+def verify_ins(conn, cursor, user_id):
+    db_helper.update_record(
+        conn, cursor, "ins", ["verify", "edited_time"], [
+            1,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ], "user_id = ?", [str(user_id)]
+    )
+    query = 'SELECT ins_id, name, phone, probability_permission, logo FROM ERNew.dbo.ins WHERE user_id = ?'
+    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
+    token = str(uuid.uuid4())
+    info = {
+        "phone": res[2], "user_id": user_id, "id": res[0], "name": res[1], "role": "ins", "pic": res[4],
+        "permission": res[3]
+    }
+    return token, info
+
+
+def insert_ins(conn, cursor, data, user_id):
+    table = "ins"
+    # field_referral = '([user_id], [code], [phone])'
+    # values_referral = (
+    #     user_id, data["referral_code"], data["phone"],)
+    # res_add_stu = db_helper.insert_value(conn=conn, cursor=cursor, table_name="referral_code", fields=field_referral,
+    #                                      values=values_referral)
+    field = '([name], [phone], [password], [user_id])'
+    values = (data["name"], data["phone"], data["password"], user_id,)
+    db_helper.insert_value(conn=conn, cursor=cursor, table_name=table, fields=field,
+                           values=values)
+    field = '([user_id], [phone], [name], [glu], [gla], [fru], [fra], [agu], [aga], [glfu], [glfa])'
+    values = (user_id, data["phone"], data["name"], 0, 1, 0, 1, 0, 1, 0, 1,)
+    db_helper.insert_value(conn=conn, cursor=cursor, table_name="capacity", fields=field,
+                           values=values)
+    query = 'SELECT cap_id FROM ERNew.dbo.capacity WHERE user_id = ?'
+    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
+    db_helper.update_record(
+        conn, cursor, "ins", ["cap_id", "edited_time"], [
+            res[0],
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ], "user_id = ?", [str(user_id)]
+    )
+    token = str(uuid.uuid4())
+    return token
+
+
+def select_ins_dashboard(conn, cursor, order_data):
+    query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM ERNew.dbo.capacity WHERE user_id = ?'
+    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["user_id"])
+    token = str(uuid.uuid4())
+    cons_info = {"GLU": res[0], "GLA": res[1], "FRU": res[2], "FRA": res[3], "AGU": res[4], "AGA": res[5],
+                 "GLFU": res[6], "GLFA": res[7], }
+    return token, cons_info
+
+
+def select_new_ins_dashboard(conn, cursor, order_data):
+    user_id = order_data["user_id"]
+
+    queries = {
+        'capacity': 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM ERNew.dbo.capacity WHERE user_id = ?',
+        'hCon_count': 'SELECT count(*) FROM ERNew.dbo.hCon WHERE ins_id = ?',
+        'con_count': 'SELECT count(*) FROM ERNew.dbo.con WHERE ins_id = ?',
+        'stu_count': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ?',
+        'hcon_finalized': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ? and hCon_finalized = 1',
+        'con_finalized': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ? and con_finalized = 1',
+        'finish_quiz': 'SELECT count(*) FROM ERNew.dbo.quiz_answer WHERE ins_id = ? and quiz_id = 7 and state = 2',
+        'started_quiz': 'SELECT count(distinct (user_id)) FROM ERNew.dbo.quiz_answer WHERE ins_id = ?',
+        'all_can_quiz': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ? and ag_access = 1'
+    }
+
+    results = {}
+    for key, query in queries.items():
+        results[key] = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
+
+    token = str(uuid.uuid4())
+    cons_info = {
+        "GLU": results['capacity'][0],
+        "GLA": results['capacity'][1],
+        "FRU": results['capacity'][2],
+        "FRA": results['capacity'][3],
+        "AGU": results['capacity'][4],
+        "AGA": results['capacity'][5],
+        "GLFU": results['capacity'][6],
+        "GLFA": results['capacity'][7],
+        "hCon_count": results['hCon_count'][0],
+        "con_count": results['con_count'][0],
+        "stu_count": results['stu_count'][0],
+        "hcon_finalized": results['hcon_finalized'][0],
+        "con_finalized": results['con_finalized'][0],
+        "finish_quiz": results['finish_quiz'][0],
+        "started_quiz": results['started_quiz'][0],
+        "all_can_quiz": results['all_can_quiz'][0]
+    }
+
+    return token, cons_info
+
+def select_ins_consultant(conn, cursor, order_data, info):
+    query = 'SELECT user_id, phone, first_name, last_name, sex, password FROM ERNew.dbo.hCon WHERE ins_id = ? order by created_time desc'
+    res_hCon = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+    if len(res_hCon) == 0:
+        token = str(uuid.uuid4())
+        return token, [], []
+    hCon_data = []
+    con_data = []
+    for hCon in res_hCon:
+        h = {"first_name": hCon[2], "last_name": hCon[3], "user_id": hCon[0], "phone": hCon[1],
+             "sex": hCon[4], "password": hCon[5]}
+        query = 'SELECT user_id, phone, first_name, last_name, sex, password FROM ERNew.dbo.con WHERE hCon_id = ? order by created_time desc'
+        res_con = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=hCon[0])
+        hcon_name = hCon[2] + " " + hCon[3]
+        if len(res_con) == 0:
+            hCon_data.append(h)
+        else:
+            hCon_data.append(h)
+            for con in res_con:
+                c = {"first_name": con[2], "last_name": con[3], "user_id": con[0], "phone": con[1],
+                     "sex": con[4], "password": con[5], "hCon_name": hcon_name, "hCon_id": hCon[0]}
+                con_data.append(c)
+    token = str(uuid.uuid4())
+    return token, hCon_data, con_data
+
+
+def select_ins_student(conn, cursor, order_data, info):
+    query = '''
+        SELECT user_id, first_name, last_name, phone, sex, password, rank, field, 
+               gl_access, fr_access, ag_access, finalized, con_id, glf_access, gl_limit, glf_limit, fr_limit
+        FROM ERNew.dbo.stu 
+        WHERE ins_id = ? 
+        ORDER BY created_time DESC
+    '''
+    res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
+    stu_data = []
+    if not res_stu:
+        token = str(uuid.uuid4())
+        return token, stu_data
+    for stu in res_stu:
+        query = 'SELECT first_name, last_name FROM ERNew.dbo.con WHERE user_id = ?'
+        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[12],))
+        con_name = ""
+        if res_con and len(res_con) >= 2:
+            con_name = f"{res_con[0]} {res_con[1]}"
+        s = {
+            "name": f"{stu[1]} {stu[2]}",
+            "user_id": stu[0],
+            "phone": stu[3],
+            "sex": stu[4],
+            "password": stu[5],
+            "GL": stu[8],
+            "FR": stu[9],
+            "AG": stu[10],
+            "GLF": stu[13],
+            "gl_limit": stu[14],
+            "glf_limit": stu[15],
+            "fr_limit": stu[16],
+            "con_id": stu[12],
+            "con_name": con_name,
+            "finalized": stu[11],
+            "rank": stu[6],
+            "field": stu[7],
+        }
+        stu_data.append(s)
+
+    token = str(uuid.uuid4())
+    return token, stu_data
+
+
+def select_ins_student_data(conn, cursor, order_data, info):
+    query = '''
+        SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number, 
+               rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
+               full_number_honar, rank_all_honar, gl_access, fr_access, ag_access, finalized, ins_id, gl_limit, glf_limit, fr_limit, glf_access
+        FROM ERNew.dbo.stu 
+        WHERE user_id = ? 
+        ORDER BY created_time DESC
+    '''
+    res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(order_data["stu_id"],))
+    if not res_stu:
+        token = str(uuid.uuid4())
+        return token, stu_data, ""
+
+    else:
+        if res_stu[23] == info["user_id"]:
+            token = str(uuid.uuid4())
+            s = {
+                "name": f"{res_stu[1]} {res_stu[2]}",
+                "user_id": res_stu[0],
+                "phone": res_stu[3],
+                "sex": res_stu[4],
+                "city": res_stu[5],
+                "birth_date": res_stu[6],
+                "field": res_stu[7],
+                "quota": res_stu[8],
+                "full_number": res_stu[9],
+                "rank": res_stu[10],
+                "rank_all": res_stu[11],
+                "last_rank": res_stu[12],
+                "rank_zaban": res_stu[13],
+                "full_number_zaban": res_stu[14],
+                "rank_all_zaban": res_stu[15],
+                "rank_honar": res_stu[16],
+                "full_number_honar": res_stu[17],
+                "rank_all_honar": res_stu[18],
+                "GL": res_stu[19],
+                "FR": res_stu[20],
+                "AG": res_stu[21],
+                "GLF": res_stu[27],
+                "finalized": res_stu[22],
+                "gl_limit": res_stu[24],
+                "glf_limit": res_stu[25],
+                "fr_limit": res_stu[26],
+            }
+            return token, s, ""
+        else:
+            return None, None, "اطلاعات دانش‌آموز و موسسه هم‌خواتی تدارد."
+
+
+def update_ins_stu(conn, cursor, order_data, info):
+    query = 'SELECT ins_id, finalized FROM ERNew.dbo.stu WHERE user_id = ?'
+    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+    if res[0] == info["user_id"]:
+        if res[1] == 0:
+            finalized = 1
+        else:
+            finalized = 2
+        db_helper.update_record(
+            conn, cursor, "stu",
+            ["sex", "birth_date", "city", "field", "quota", "full_number", "rank", "rank_all", "last_rank",
+             "rank_zaban", "full_number_zaban", "rank_all_zaban", "rank_honar", "full_number_honar", "rank_all_honar",
+             "finalized", "editor_id", "edited_time"], [
+                order_data["sex"],
+                order_data["birth_date"], order_data["province"], order_data["field"], order_data["quota"],
+                order_data["full_number"], order_data["rank"], order_data["rank_all"],
+                order_data["last_rank"], order_data["rank_zaban"], order_data["full_number_zaban"],
+                order_data["rank_all_zaban"], order_data["rank_honar"], order_data["full_number_honar"],
+                order_data["rank_all_honar"], finalized, info["user_id"],
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ], "user_id = ?", [str(order_data["stu_id"])]
+        )
+        token = str(uuid.uuid4())
+        return token, "اطلاعات دانش‌آموز نهایی شد.", finalized
+    else:
+        return None, "اطلاعات دانش‌آموز و موسسه هم‌خواتی تدارد.", res[1]
+
+
+def select_ins_student_pf(conn, cursor, order_data, info):
+    if order_data["kind"] == 0:
+        query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM ERNew.dbo.stu WHERE ins_id = ? order by created_time desc'
+    elif order_data["kind"] == 1:
+        query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM ERNew.dbo.stu WHERE ins_id = ? and gl_access = 1 order by created_time desc'
+    elif order_data["kind"] == 2:
+        query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM ERNew.dbo.stu WHERE ins_id = ? and fr_access = 1 order by created_time desc'
+    elif order_data["kind"] == 3:
+        query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM ERNew.dbo.stu WHERE ins_id = ? and glf_access = 1 order by created_time desc'
+    else:
+        query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM ERNew.dbo.stu WHERE ins_id = ? and ag_access = 1 order by created_time desc'
+    res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+    stu_data = []
+    if len(res_stu) == 0:
+        token = str(uuid.uuid4())
+        return token, stu_data
+    for stu in res_stu:
+        query = 'SELECT first_name, last_name FROM ERNew.dbo.hCon WHERE user_id = ?'
+        res_hcon = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[10],))
+        query = 'SELECT first_name, last_name FROM ERNew.dbo.con WHERE user_id = ?'
+        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[11],))
+        con_name = ""
+        if res_con and len(res_con) >= 2:
+            con_name = f"{res_con[0]} {res_con[1]}"
+        hcon_name = ""
+        if res_hcon and len(res_hcon) >= 2:
+            hcon_name = f"{res_hcon[0]} {res_hcon[1]}"
+        s = {"name": stu[1] + " " + stu[2], "user_id": stu[0], "GL": stu[3], "FR": stu[4], "AG": stu[5],
+             "finalized": stu[6], "hCon_finalized": stu[7], "con_finalized": stu[8], "field": stu[9],
+             "con_name": con_name, "hCon_name": hcon_name, "GLF": stu[12]}
+        stu_data.append(s)
+    token = str(uuid.uuid4())
+    return token, stu_data
+
+
+def select_ins_report_pf(conn, cursor, order_data, info):
+    query = 'SELECT user_id, phone, first_name, last_name, field, hCon_id, con_id, ag_pdf, ag_pf FROM ERNew.dbo.stu WHERE ins_id = ? and ag_access = 1 order by created_time desc'
+    res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+    stu_data = []
+    if len(res_stu) == 0:
+        token = str(uuid.uuid4())
+        return token, stu_data
+    for stu in res_stu:
+        query = 'SELECT first_name, last_name FROM ERNew.dbo.hCon WHERE user_id = ?'
+        res_hcon = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[5],))
+        query = 'SELECT first_name, last_name FROM ERNew.dbo.con WHERE user_id = ?'
+        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[6],))
+        con_name = ""
+        if res_con and len(res_con) >= 2:
+            con_name = f"{res_con[0]} {res_con[1]}"
+        hcon_name = ""
+        if res_hcon and len(res_hcon) >= 2:
+            hcon_name = f"{res_hcon[0]} {res_hcon[1]}"
+        s = {"name": stu[2] + " " + stu[3], "user_id": stu[0], "field": stu[4], "phone": stu[1], "con_name": con_name,
+             "hCon_name": hcon_name, "AGAccess": stu[8], "AGPDF": stu[7]}
+        stu_data.append(s)
+    token = str(uuid.uuid4())
+    return token, stu_data
+
+
+def insert_ins_hCon(conn, cursor, order_data, info):
+    query = 'SELECT user_id FROM ERNew.dbo.users WHERE phone = ?'
+    res_check_user_phone = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["phone"])
+    if res_check_user_phone is not None:
+        return None, "شماره تلفن وارد شده در سامانه موجود می‌باشد لطفا شماره تلفن دیگری وارد نمایید."
+    password = id_generator()
+    field = '([phone], [password], [role])'
+    values = (order_data["phone"], password, 'hCon',)
+    res_add_user = db_helper.insert_value(conn=conn, cursor=cursor, table_name="users", fields=field,
+                                          values=values)
+    query = 'SELECT user_id FROM ERNew.dbo.users WHERE phone = ?'
+    res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["phone"])
+
+    fields = '([user_id], [phone], [first_name], [last_name], [sex], [ins_id], [password], [adder_id], [editor_id])'
+    values = (
+        res_user[0], order_data["phone"], order_data["first_name"], order_data["last_name"],
+        order_data["sex"], info["user_id"], password, info["user_id"], info["user_id"],)
+    res_add_hCon = db_helper.insert_value(conn=conn, cursor=cursor, table_name="hCon", fields=fields, values=values)
+    token = str(uuid.uuid4())
+    return token, "سرمشاور با موفقیت اضافه شد."
+
+
+def update_ins_hCon(conn, cursor, order_data, info):
+    row_count = db_helper.update_record(
+        conn, cursor, "hCon", ['first_name', 'last_name', 'sex', 'editor_id', 'edited_time'],
+        [order_data["first_name"], order_data["last_name"], order_data["sex"], info["user_id"],
+         datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [str(order_data["consultant_id"])]
+    )
+    if row_count > 0:
+        token = str(uuid.uuid4())
+        return token, "اطلاعات سرمشاور با موفقیت تغییر یافت."
+    else:
+        return None, "اطلاعات کاربر تغییر نیافت."
+
+
+def insert_ins_con(conn, cursor, order_data, info):
+    query = 'SELECT user_id FROM ERNew.dbo.users WHERE phone = ?'
+    res_check_user_phone = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["phone"])
+    if res_check_user_phone is not None:
+        return None, "شماره تلفن وارد شده در سامانه موجود می‌باشد لطفا شماره تلفن دیگری وارد نمایید."
+    password = id_generator()
+    field = '([phone], [password], [role])'
+    values = (order_data["phone"], password, 'con',)
+    res_add_user = db_helper.insert_value(conn=conn, cursor=cursor, table_name="users", fields=field,
+                                          values=values)
+    query = 'SELECT user_id FROM ERNew.dbo.users WHERE phone = ?'
+    res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["phone"])
+    # todo here check the hcon id is exist and for this ins
+    field = '([user_id], [phone], [first_name], [last_name], [sex], [ins_id], [hCon_id], [password], [adder_id], [editor_id])'
+    values = (
+        res_user[0], order_data["phone"], order_data["first_name"], order_data["last_name"],
+        order_data["sex"], info["user_id"], order_data["hCon_id"], password, info["user_id"],
+        info["user_id"],)
+    res_add_con = db_helper.insert_value(conn=conn, cursor=cursor, table_name="con", fields=field,
+                                         values=values)
+    token = str(uuid.uuid4())
+    return token, "مشاور با موفقیت اضافه شد."
+
+
+def insert_ins_add_stu(conn, cursor, order_data, info):
+    phone = random_phone_number(conn, cursor, 8)
+    password = id_generator()
+    field = '([phone], [password], [role])'
+    values = (phone, password, 'stu',)
+    res_add_user = db_helper.insert_value(conn=conn, cursor=cursor, table_name="users", fields=field,
+                                          values=values)
+    query = 'SELECT user_id FROM ERNew.dbo.users WHERE phone = ?'
+    res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=phone)
+    query = 'SELECT hCon_id FROM ERNew.dbo.con WHERE user_id = ?'
+    res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["con_id"])
+    if res_con is None:
+        return None, "اطلاعات دریافتی مشاور شما مشکل دارد."
+    # todo here check the hcon id is exist and for this ins
+    field = '([user_id], [phone], [first_name], [last_name], [sex], [birth_date], [city], [field], [quota], [ins_id], [hCon_id], [con_id], [password], [adder_id], [editor_id])'
+    values = (
+        res_user[0], phone, order_data["first_name"], order_data["last_name"],
+        order_data["sex"], order_data["birth_date"], order_data["province"], int(order_data["field"]),
+        int(order_data["quota"]), info["user_id"], res_con[0], order_data["con_id"], password,
+        info["user_id"], info["user_id"],)
+    res_add_stu = db_helper.insert_value(conn=conn, cursor=cursor, table_name="stu", fields=field,
+                                         values=values)
+    token = str(uuid.uuid4())
+    return token, "دانش‌آموز با موفقیت اضافه شد."
+
+
+def update_ins_con(conn, cursor, order_data, info):
+    row_count = db_helper.update_record(
+        conn, cursor, "con", ['first_name', 'last_name', 'sex', 'hCon_id', 'editor_id', 'edited_time'],
+        [order_data["first_name"], order_data["last_name"], order_data["sex"], order_data["hCon_id"], info["user_id"],
+         datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [str(order_data["consultant_id"])]
+    )
+    if row_count > 0:
+        row_count = db_helper.update_record(
+            conn, cursor, "stu", ['hCon_id', 'editor_id', 'edited_time'],
+            [order_data["hCon_id"], info["user_id"],
+             datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "con_id = ?", [str(order_data["consultant_id"])]
+        )
+        token = str(uuid.uuid4())
+        return token, "اطلاعات مشاور با موفقیت تغییر یافت."
+    else:
+        return None, "اطلاعات کاربر تغییر نیافت."
+
+
+def insert_ins_stu(conn, cursor, order_data, user_id, password, phone):
+    field = '([user_id], [phone], [first_name], [last_name], [national_id], [sex], [ins_id], [hCon_id], [con_id], [password], [birth_date], [city], [field], [quota], [full_number], [rank], [rank_all], [last_rank], [rank_zaban], [full_number_zaban], [rank_all_zaban], [rank_honar], [full_number_honar], [rank_all_honar], [haveGL], [haveFR], [haveAG], [finalized], [hCon_finalized], [con_finalized], [adder_id], [editor_id], [DC_Created_Time], [DC_Edited_Time])'
+    values = (user_id, phone, order_data["first_name"], order_data["last_name"], order_data["national_id"],
+              int(order_data["sex"]), order_data["user_id"], order_data["hCon_id"], order_data["con_id"],
+              password, order_data["birth_date"], order_data["province"], int(order_data["field"]),
+              int(order_data["quota"]), int(order_data["full_number"]),
+              int(order_data["rank"]), int(order_data["rank_all"]), int(order_data["last_rank"]),
+              int(order_data["rank_zaban"]), int(order_data["full_number_zaban"]),
+              int(order_data["rank_all_zaban"]), int(order_data["rank_honar"]), int(order_data["full_number_honar"]),
+              int(order_data["rank_all_honar"]), order_data["GL"],
+              order_data["FR"], order_data["AG"], 0, 0, 0, order_data["user_id"], order_data["user_id"],
+              datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+              datetime.now().strftime("%Y-%m-%d %H:%M:%S"),)
+    res_add_stu = db_helper.insert_value(conn=conn, cursor=cursor, table_name="stu", fields=field,
+                                         values=values)
+    query_cap = 'SELECT * FROM ERNew.dbo.capacity WHERE user_id = ?'
+    res_cap = db_helper.search_table(conn=conn, cursor=cursor, query=query_cap, field=order_data["user_id"])
+    GLA = int(res_cap[4])
+    GLU = int(res_cap[3])
+    FRA = int(res_cap[6])
+    FRU = int(res_cap[5])
+    AGA = int(res_cap[8])
+    AGU = int(res_cap[7])
+    if order_data["GL"] != 0:
+        GLA = GLA - 1
+        GLU = GLU + 1
+    if order_data["FR"] != 0:
+        FRA = FRA - 1
+        FRU = FRU + 1
+    if order_data["AG"] != 0:
+        AGA = AGA - 1
+        AGU = AGU + 1
+    db_helper.update_record(conn, cursor, 'capacity',
+                            ['GLU', 'GLA', 'FRU', 'FRA', 'AGU', 'AGA'],
+                            [GLU, GLA, FRU, FRA, AGU, AGA],
+                            'user_id = ' + str(order_data["user_id"]))
+    conn.commit()
+    token = str(uuid.uuid4())
+    return token
+
+
+def update_ins_password(conn, cursor, order_data, info):
+    val, message = password_format_check(order_data["password"])
+    if order_data["password"] != order_data["re_password"]:
+        return None, "رمز عبور و تکرار رمز عبور باهم تطابق ندارد."
+    if not val:
+        return None, message
+    row_count = db_helper.update_record(
+        conn, cursor, "users", ['password', 'edited_time'],
+        [order_data["password"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [info["user_id"]]
+    )
+    row_count = db_helper.update_record(
+        conn, cursor, "ins", ['password', 'edited_time'],
+        [order_data["password"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [info["user_id"]]
+    )
+    token = str(uuid.uuid4())
+    return token, "رمز عبور شما با موفقیت تغییر کرد."
+
+
+def update_ins_user_profile(conn, cursor, order_data, info):
+    row_count = db_helper.update_record(
+        conn, cursor, "ins", ['name', 'edited_time'],
+        [order_data["name"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+        "user_id = ?", [info["user_id"]]
+    )
+    if row_count > 0:
+        token = str(uuid.uuid4())
+        return token, "اطلاعات با موفقیت تغییر یافت.", order_data["name"]
+    else:
+        return None, "اطلاعات کاربر تغییر نیافت.", order_data["name"]
+
+
+def update_ins_stu_access(conn, cursor, order_data, info):
+    try:
+        query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM ERNew.dbo.capacity WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
+
+        if not res:
+            return None, "ظرفیت کاربر یافت نشد."
+        glu, gla, fru, fra, agu, aga, glfu, glfa = res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7]
+        kind = order_data["kind"]
+        if kind == "GL":
+            if gla == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته سراسری ندارید."
+            update_fields = ["gl_access", "gl_limit", "editor_id", "edited_time"]
+            update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            gla -= 1
+            glu += 1
+            capacity_update_fields = ["gla", "glu", "edited_time"]
+            capacity_update_values = [gla, glu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        elif kind == "GLF":
+            if glfa == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته فرهنگیان ندارید."
+            update_fields = ["glf_access", "glf_limit", "editor_id", "edited_time"]
+            update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            glfa -= 1
+            glfu += 1
+            capacity_update_fields = ["glfa", "glfu", "edited_time"]
+            capacity_update_values = [glfa, glfu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        elif kind == "FR":
+            if fra == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته آزاد ندارید."
+            update_fields = ["fr_access", "fr_limit", "editor_id", "edited_time"]
+            update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            fra -= 1
+            fru += 1
+            capacity_update_fields = ["fra", "fru", "edited_time"]
+            capacity_update_values = [fra, fru, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        elif kind == "AG":
+            if aga == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای هدایت شغلی ندارید."
+            update_fields = ["ag_access", "editor_id", "edited_time"]
+            update_values = [1, info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            aga -= 1
+            agu += 1
+            capacity_update_fields = ["aga", "agu", "edited_time"]
+            capacity_update_values = [aga, agu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        else:
+            return None, "نوع دسترسی نامعتبر است."
+        student_condition = "user_id = ?"
+        student_condition_values = [order_data["stu_id"]]
+        student_updated = db_helper.update_record(
+            conn, cursor, "stu", update_fields, update_values, student_condition, student_condition_values
+        )
+
+        if student_updated == 0:
+            return None, "خطا در بروزرسانی اطلاعات دانش‌آموز."
+        capacity_condition = "user_id = ?"
+        capacity_condition_values = [info["user_id"]]
+        capacity_updated = db_helper.update_record(
+            conn, cursor, "capacity", capacity_update_fields, capacity_update_values, capacity_condition,
+            capacity_condition_values
+        )
+
+        if capacity_updated == 0:
+            return None, "خطا در بروزرسانی ظرفیت کاربر."
+        token = str(uuid.uuid4())
+        return token, "عملیات با موفقیت انجام شد."
+    except Exception as e:
+        conn.rollback()
+        print(f"Error in update_ins_stu_access: {e}")
+        return None, "خطا در انجام عملیات."
+
+
+def update_ins_permission(conn, cursor, order_data, info):
+    row_count = db_helper.update_record(
+        conn, cursor, "ins", ['probability_permission', 'edited_time'],
+        [order_data["permission"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+        "user_id = ?", [info["user_id"]]
+    )
+    if row_count > 0:
+        token = str(uuid.uuid4())
+        return token, "نمایش احتمال قبولی‌ها تغییر یافت. برای اعمال به دانش‌آموزان خود اعلام کنید که از سامانه یکبار خروج کرده و دوباره برگردند.", \
+            order_data["permission"]
+    else:
+        return None, "تغییرات شما اعمال نشد. لطفا از پشتیبانی پیگیری بفرمایید.", 0
+
+
+def update_user_ins_pic(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    row_count = db_helper.update_record(
+        conn, cursor, "ins", ['name', 'logo', 'edited_time'],
+        [order_data["name"], order_data["pic"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+        "user_id = ?", [info["user_id"]]
+    )
+    if row_count > 0:
+        token = str(uuid.uuid4())
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"data": {"name": order_data["name"], "pic": order_data["pic"]},
+                             "message": "اطلاعات شما با موفقیت تغییر یافت."}}
+    else:
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."}
+
+
+def select_ins_cons_stu(conn, cursor, order_data, info):
+    query = 'SELECT user_id, first_name, last_name FROM ERNew.dbo.con WHERE ins_id = ? order by created_time desc'
+    res_con = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+    con_data = []
+    if len(res_con) == 0:
+        token = str(uuid.uuid4())
+        return token, []
+    for con in res_con:
+        c = {"name": con[1] + " " + con[2], "con_id": con[0]}
+        con_data.append(c)
+    token = str(uuid.uuid4())
+    return token, con_data
+
+
+def update_ins_stu_finilize(conn, cursor, order_data):
+    query = 'SELECT * FROM ERNew.dbo.stu WHERE national_id = ?'
+    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["national_id"])
+    db_helper.update_record(conn, cursor, 'stu',
+                            ['first_name', 'last_name', 'sex', 'birth_date', 'city',
+                             'field', 'quota', 'full_number', 'rank', 'rank_all', 'last_rank',
+                             'rank_zaban', 'rank_all_zaban', 'full_number_zaban', 'rank_honar', 'rank_all_honar',
+                             'full_number_honar', 'finalized', 'editor_id'],
+                            [order_data["first_name"], order_data["last_name"], order_data["sex"],
+                             order_data["birth_date"],
+                             order_data["province"], order_data["field"], order_data["quota"],
+                             order_data["full_number"], order_data["rank"], order_data["rank_all"],
+                             order_data["last_rank"], order_data["rank_zaban"], order_data["rank_all_zaban"],
+                             order_data["full_number_zaban"], order_data["rank_honar"], order_data["rank_all_honar"],
+                             order_data["full_number_honar"], 1, order_data["user_id"]],
+                            'user_id = ' + str(res[1]))
+    token = str(uuid.uuid4())
+    return token
+
+
+def update_ins_stu_con(conn, cursor, order_data, info):
+    query = 'SELECT hCon_id FROM ERNew.dbo.con WHERE user_id = ?'
+    res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["con_id"])
+    if res_con:
+        row_count = db_helper.update_record(
+            conn, cursor, "stu", ['con_id', 'hCon_id', 'gl_limit', 'glf_limit', 'fr_limit', 'editor_id', 'edited_time'],
+            [order_data["con_id"], res_con[0], order_data["gl_limit"], order_data["glf_limit"], order_data["fr_limit"],
+             info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [order_data["stu_id"]]
+        )
+        if row_count > 0:
+            token = str(uuid.uuid4())
+            return token, "اطلاعات مشاور دانش‌آموز با موفقیت تغییر یافت."
+        else:
+            return None, "اطلاعات کاربر تغییر نیافت."
+    return None, "اطلاعات مشاور دردسترس نمی‌باشد."
+
+
+def insert_ins_stu_speed(conn, cursor, order_data):
+    if order_data["kind"] == "major":
+        query = 'SELECT * FROM ERNew.dbo.speed WHERE user_id = ?'
+        res_stu_speed = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        if res_stu_speed is not None:
+            query_update = "update speed set major_list = '" + str(order_data["major_list"]) + "',editor_id = '" + str(
+                order_data["user_id"]) + "' where user_id = '" + str(order_data["stu_id"]) + "' "
+            res = cursor.execute(query_update)
+            conn.commit()
+            token = str(uuid.uuid4())
+        else:
+            field = '([user_id], [field], [major_list], [editor_id], [DC_Created_Time], [DC_Edited_Time])'
+            values = (order_data["stu_id"], order_data["field"], order_data["major_list"], order_data["user_id"],
+                      datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                      datetime.now().strftime("%Y-%m-%d %H:%M:%S"),)
+            res_add_stu = db_helper.insert_value(conn=conn, cursor=cursor, table_name="speed", fields=field,
+                                                 values=values)
+            token = str(uuid.uuid4())
+        return token, "اطلاعات رشته مورد علاقه دانش‌آموز شما ثبت شد."
+    elif order_data["kind"] == "uni":
+        query_update = "update speed set uni_list = '" + str(order_data["uni_list"]) + "',editor_id = '" + str(
+            order_data["user_id"]) + "' where user_id = '" + str(order_data["stu_id"]) + "' "
+        res = cursor.execute(query_update)
+        conn.commit()
+        token = str(uuid.uuid4())
+        return token, "اطلاعات دانشگاه مورد علاقه دانش‌آموز شما ثبت شد."
+    elif order_data["kind"] == "period":
+        query_update = "update speed set period_list = '" + str(order_data["period_list"]) + "',editor_id = '" + str(
+            order_data["user_id"]) + "' where user_id = '" + str(order_data["stu_id"]) + "' "
+        res = cursor.execute(query_update)
+        conn.commit()
+        redis_host = '127.0.0.1'
+        redis_port = 6379
+        redis_password = ''
+        r = redis.Redis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+        key = "userFast"
+        r.rpush(key, order_data["stu_id"])
+        token = str(uuid.uuid4())
+        message = "لیست پشنهادی دانش‌آموز شما تا لحظاتی  دیگر آماده خواهد شد."
+        return token, message
+
+
+def insert_ins_order_payment(conn, cursor, order_data):
+    phone = order_data["phone"]
+    user_id = order_data["user_id"]
+    GL = order_data["GL"]
+    FR = order_data["FR"]
+    AG = order_data["AG"]
+    total_value = order_data["total_value"]
+    query = "SELECT * FROM ERNew.dbo.orders WHERE phone = '" + str(phone) + "' and order_status = 'pending'"
+    response = cursor.execute(query)
+    row = response.fetchone()
+    conn.commit()
+    code = code_generator(8)
+    if row is None:
+        field = '([user_id], [phone], [GL], [FR], [AG], [code], [total_value], [order_status], [DC_Created_Time], [DC_Edited_Time], [DC_Expier_Time])'
+        values = (
+            user_id, phone, GL, FR, AG, code, total_value, 'pending',
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.now().strftime("%Y-%m-%d %H:%M:%S"),)
+        res_add_con = db_helper.insert_value(conn=conn, cursor=cursor, table_name="orders", fields=field,
+                                             values=values)
+        token = str(uuid.uuid4())
+    else:
+        update_status_query = "update orders set order_status = '" + str("canceled") + "' where order_id = '" + str(
+            row[0]) + "' "
+        res = cursor.execute(update_status_query)
+        conn.commit()
+        field = '([user_id], [phone], [GL], [FR], [AG], [code], [total_value], [order_status], [DC_Created_Time], [DC_Edited_Time], [DC_Expier_Time])'
+        values = (
+            user_id, phone, GL, FR, AG, code, total_value, 'pending',
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), datetime.now().strftime("%Y-%m-%d %H:%M:%S"),)
+        res_add_con = db_helper.insert_value(conn=conn, cursor=cursor, table_name="orders", fields=field,
+                                             values=values)
+        token = str(uuid.uuid4())
+    return token, code
+
+
+def update_ins_ag_access(conn, cursor, order_data, info):
+    if order_data["kind"] == "AGAccess":
+        row_count = db_helper.update_record(
+            conn, cursor, "stu", ['ag_pf', 'edited_time'],
+            [order_data["value"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "user_id = ?", [order_data["stu_id"]]
+        )
+    elif order_data["kind"] == "AGPDF":
+        row_count = db_helper.update_record(
+            conn, cursor, "stu", ['ag_pdf', 'edited_time'],
+            [order_data["value"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "user_id = ?", [order_data["stu_id"]]
+        )
+    else:
+        return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+    if row_count > 0:
+        return str(uuid.uuid4()), "اطلاعات شما با موفقیت تغییر یافت."
+    else:
+        return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."

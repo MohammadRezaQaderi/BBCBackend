@@ -1,16 +1,18 @@
 import uuid
+import json
 from datetime import datetime
+
 from Helper import db_helper
 from Helper.func_helper import password_format_check
 
 
 def select_student_info(conn, cursor, user_id):
     try:
-        query = 'SELECT stu_id, first_name, last_name, sex, city, birth_date, field, quota, full_number, rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar, full_number_honar, rank_all_honar, lock, finalized, hoshmand_access, fr_access, ins_id, con_id FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT stu_id, first_name, last_name, sex, city, birth_date, field, quota, full_number, rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar, full_number_honar, rank_all_honar, lock, finalized, hoshmand_access, fr_access, ins_id, con_id FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
-        query = 'SELECT name, logo FROM BBC.dbo.ins WHERE user_id = ?'
+        query = 'SELECT name, logo FROM ins WHERE user_id = ?'
         res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.ins_id)
-        query = 'SELECT first_name, last_name, user_id FROM BBC.dbo.con WHERE user_id = ?'
+        query = 'SELECT first_name, last_name, user_id FROM con WHERE user_id = ?'
         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.con_id)
         token = str(uuid.uuid4())
         if not res:
@@ -48,11 +50,11 @@ def select_student_info(conn, cursor, user_id):
 
         return token, student_info
     except Exception as e:
-        print(">>>> student select_info error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            user_id, None, "select_student_info", "bbc_api",
-            None, None, str(e))
+            user_id, None, "bbc_api/stu", "select_student_info",
+            None, str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, None
@@ -72,11 +74,11 @@ def update_stu_user_profile(conn, cursor, order_data, info):
         else:
             return None, "اطلاعات کاربر تغییر نیافت.", None
     except Exception as e:
-        print(">>>> stu update_stu_user_profile error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.user_id, None, "select_student_info", "bbc_api",
-            None, None, str(e))
+            info.get("user_id"), info.get("phone"), "bbc_api/stu", "update_stu_user_profile",
+            json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده", None
@@ -104,11 +106,11 @@ def update_stu_password(conn, cursor, order_data, info):
         token = str(uuid.uuid4())
         return token, "رمز عبور شما با موفقیت تغییر کرد."
     except Exception as e:
-        print(">>>> stu update_stu_password error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.user_id, None, "update_stu_password", "bbc_api",
-            None, None, str(e))
+            info.get("user_id"), info.get("phone"), "bbc_api/stu", "update_stu_password",
+            json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده"
@@ -116,7 +118,7 @@ def update_stu_password(conn, cursor, order_data, info):
 
 def update_stu_info(conn, cursor, order_data, info, finalized):
     try:
-        query = 'SELECT finalized FROM ERNew.dbo.stu WHERE user_id = ?'
+        query = 'SELECT finalized FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
         update_finalized = finalized
         if res.finalized == 0:
@@ -143,11 +145,11 @@ def update_stu_info(conn, cursor, order_data, info, finalized):
         else:
             return None, "اطلاعات کاربر تغییر نیافت.", finalized
     except Exception as e:
-        print(">>>> stu update_stu_info error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.user_id, None, "update_stu_password", "bbc_api",
-            None, None, str(e))
+            info.get("user_id"), info.get("phone"), "bbc_api/stu", "update_stu_info",
+            json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده", finalized

@@ -47,11 +47,12 @@ async def signin_api(request: Request):
             return {"status": 405, "tracking_code": None, "method_type": None,
                     "error": "سرویس مورد نظر در دسترس نیست."}
     except KeyError as e:
+        print(">>>> endpoint log error", e)
         conn, cursor = await db_connection()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "bbc_api/signin", "bbc_api",
-            None, None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+            None, None, "bbc_api/signin", "signin_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         cursor.close()
@@ -63,8 +64,8 @@ async def signin_api(request: Request):
         conn, cursor = await db_connection()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "bbc_api/signin", "bbc_api",
-            None, None, str(e))
+            None, None, "bbc_api/signin", "signin_api",
+            None, str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         cursor.close()
@@ -97,11 +98,12 @@ async def insert_api(request: Request):
         return {"status": 405, "tracking_code": None, "method_type": None,
                 "error": "سرویس مورد نظر در دسترس نیست."}
     except KeyError as e:
+        print(">>>> endpoint log error", e)
         conn, cursor = await db_connection()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "bbc_api/insert_request", "bbc_api",
-            None, None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+            None, None, "bbc_api/insert_request", "insert_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         cursor.close()
@@ -109,11 +111,12 @@ async def insert_api(request: Request):
         return {"status": 401, "tracking_code": None, "method_type": method_type,
                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
     except Exception as e:
+        print(">>>> endpoint log error", e)
         conn, cursor = await db_connection()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "bbc_api/insert_request", "bbc_api",
-            None, None, str(e))
+            None, None, "bbc_api/insert_request", "insert_api",
+            None, str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         cursor.close()
@@ -157,8 +160,8 @@ async def update_api(request: Request):
         conn, cursor = await db_connection()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "bbc_api/update_request", "bbc_api",
-            None, None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+            None, None, "bbc_api/update_request", "update_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         cursor.close()
@@ -169,8 +172,8 @@ async def update_api(request: Request):
         conn, cursor = await db_connection()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "bbc_api/update_request", "bbc_api",
-            None, None, str(e))
+            None, None, "bbc_api/update_request", "update_api",
+            None, str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         cursor.close()

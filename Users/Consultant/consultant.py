@@ -1,15 +1,16 @@
 import uuid
-from Helper import db_helper
+import json
 from datetime import datetime
 
+from Helper import db_helper
 from Helper.func_helper import password_format_check, random_phone_number, id_generator
 
 
 def select_con_info(conn, cursor, user_id):
     try:
-        query = 'SELECT con_id, phone, first_name, last_name, sex, ins_id FROM BBC.dbo.con WHERE user_id = ?'
+        query = 'SELECT con_id, phone, first_name, last_name, sex, ins_id FROM con WHERE user_id = ?'
         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
-        query = 'SELECT name, logo FROM BBC.dbo.ins WHERE user_id = ?'
+        query = 'SELECT name, logo FROM ins WHERE user_id = ?'
         res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res_con.ins_id)
         token = str(uuid.uuid4())
         info = {"phone": res_con.phone, "user_id": user_id, "id": res_con.con_id, "first_name": res_con.first_name,
@@ -20,8 +21,8 @@ def select_con_info(conn, cursor, user_id):
         print(">>>> con select_info error", e)
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            user_id, None, "select_con_info", "bbc_api",
-            None, None, str(e))
+            user_id, None, "bbc_api/con", "select_con_info",
+            None, str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, None
@@ -35,9 +36,9 @@ def insert_con_stu(conn, cursor, order_data, info):
         values = (phone, password, 'stu',)
         res_add_user = db_helper.insert_value(conn=conn, cursor=cursor, table_name="users", fields=field,
                                               values=values)
-        query = 'SELECT user_id FROM BBC.dbo.users WHERE phone = ?'
+        query = 'SELECT user_id FROM users WHERE phone = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=phone)
-        query = 'SELECT ins_id FROM BBC.dbo.con WHERE user_id = ?'
+        query = 'SELECT ins_id FROM con WHERE user_id = ?'
         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_con is None:
             return None, "اطلاعات دریافتی مشاور شما مشکل دارد."
@@ -53,11 +54,11 @@ def insert_con_stu(conn, cursor, order_data, info):
         token = str(uuid.uuid4())
         return token, "دانش‌آموز با موفقیت اضافه شد."
     except Exception as e:
-        print(">>>> con insert_con_stu error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.user_id, None, "insert_con_stu", "bbc_api",
-            None, None, str(e))
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "insert_con_stu",
+            json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در افزودن دانش‌آموز پیش آمده"
@@ -77,11 +78,11 @@ def update_con_user_profile(conn, cursor, order_data, info):
         else:
             return None, "اطلاعات کاربر تغییر نیافت.", None
     except Exception as e:
-        print(">>>> con update_con_user_profile error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.user_id, None, "update_con_user_profile", "bbc_api",
-            None, None, str(e))
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "update_con_user_profile",
+            json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده", None
@@ -105,11 +106,11 @@ def update_con_password(conn, cursor, order_data, info):
         token = str(uuid.uuid4())
         return token, "رمز عبور شما با موفقیت تغییر کرد."
     except Exception as e:
-        print(">>>> con update_con_password error", e)
+        conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.user_id, None, "update_con_password", "bbc_api",
-            None, None, str(e))
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "update_con_password",
+            json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده"

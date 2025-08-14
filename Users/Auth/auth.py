@@ -7,21 +7,29 @@ from Users.Student.student import select_student_info
 
 
 def create_token(conn, cursor, data):
-    query = "SELECT token FROM BBC.dbo.tokens WHERE user_id = ?"
-    res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data[0])
-    if res is None:
-        while True:
-            token = str(uuid.uuid4())
-            token_check_query = "SELECT token FROM BBC.dbo.tokens WHERE token = ?"
-            token_exists = db_helper.search_table(conn=conn, cursor=cursor, query=token_check_query, field=token)
-            if not token_exists:
-                field = '([token], [user_id], [phone], [role])'
-                values = (token, data[0], data[1], data[2])
-                db_helper.insert_value(conn=conn, cursor=cursor, table_name="tokens", fields=field, values=values)
-                return token
-    else:
-        return res[0]
-
+    try:
+        query = "SELECT token FROM tokens WHERE user_id = ?"
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data[0])
+        if res is None:
+            while True:
+                token = str(uuid.uuid4())
+                token_check_query = "SELECT token FROM tokens WHERE token = ?"
+                token_exists = db_helper.search_table(conn=conn, cursor=cursor, query=token_check_query, field=token)
+                if not token_exists:
+                    field = '([token], [user_id], [phone], [role])'
+                    values = (token, data[0], data[1], data[2])
+                    db_helper.insert_value(conn=conn, cursor=cursor, table_name="tokens", fields=field, values=values)
+                    return token
+        else:
+            return res[0]
+    except Exception as e:
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/auth", "create_token",
+            json.dumps(data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None
 
 def token_remove(conn, cursor, data):
     try:
@@ -32,7 +40,12 @@ def token_remove(conn, cursor, data):
         )
         return res
     except Exception as e:
-        print(">>>>>> remove token auth error", e)
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/auth", "delete_token",
+            json.dumps(data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
         return None
 
 
@@ -40,7 +53,7 @@ def check_signin(conn, cursor, data):
     try:
         phone = data["phone"]
         password = data["password"]
-        query = 'SELECT user_id, password, role FROM BBC.dbo.users WHERE phone = ?'
+        query = 'SELECT user_id, password, role FROM users WHERE phone = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=phone)
         if res is None:
             return None, " کاربری با این شماره تلفن موجود نمی‌باشد.", None
@@ -61,8 +74,8 @@ def check_signin(conn, cursor, data):
         print(">>>>>> auth check signin error", e)
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            None, None, "check_signin", "bbc_api",
+            None, None, "bbc_api/auth", "check_signin",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
-        return None, "مشکلی در ورود شما رخ داده با پشتیبانی ارتباط بگیرید.", None
+        return None, "مشکلی در ورود شما رخ داده است.", None

@@ -18,266 +18,188 @@ major_info = ["رشته‌های اولویت ۱", "رشته‌های اولوی
 
 
 def check_user_request(conn, cursor, order_data, info):
-    try:
-        if info["role"] == "ins":
-            query = 'SELECT ins_id FROM BBC.dbo.stu WHERE user_id = ?'
-            res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
-            if res.ins_id != info["user_id"]:
-                return False
-        elif info["role"] == "con":
-            query = 'SELECT con_id FROM BBC.dbo.stu WHERE user_id = ?'
-            res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
-            if res.con_id != info["user_id"]:
-                return False
-        else:
-            if info["user_id"] != int(order_data["stu_id"]):
-                return False
-        return True
-    except Exception as e:
-        print(e)
-        return False
+    if info.get("role") == "ins":
+        query = 'SELECT ins_id FROM BBC.dbo.stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        if res.ins_id != info.get("user_id"):
+            return False
+    elif info.get("role") == "con":
+        query = 'SELECT con_id FROM BBC.dbo.stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        if res.con_id != info.get("user_id"):
+            return False
+    else:
+        if info.get("user_id") != int(order_data["stu_id"]):
+            return False
+    return False
 
 
 def delete_token(conn, cursor, data, info):
-    try:
-        method_type = "DELETE"
-        token = str(uuid.uuid4())
-        res = token_remove(conn, cursor, data)
-        if res.rowcount == 0:
-            return {"status": 200, "tracking_code": token, "method_type": method_type,
-                    "response": {"message": "نشد"}}
+    method_type = "DELETE"
+    token = str(uuid.uuid4())
+    res = token_remove(conn, cursor, data)
+    if not res:
         return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"message": "شد"}}
-    except Exception as e:
-        print(">>> user error remove token", e)
-        return {"status": 500, "tracking_code": None, "method_type": None,
-                "response": {"message": "شد"}}
+                "response": {"message": "نشد"}}
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"message": "شد"}}
 
 
 def signin(conn, cursor, order_data):
-    try:
-        method_type = "SIGNIN"
-        tracking_code, message, info = check_signin(conn=conn, cursor=cursor, data=order_data)
-        if info is None:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": message}
-        elif tracking_code:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-                    "response": info}
-        else:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": "اطلاعات شما در سامانه یافت نشد"}
-    except Exception as e:
-        print(">>> user signin error", e)
-        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-        values_log = (
-            None, None, "signin", "bbc_api",
-            json.dumps(order_data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-                               values=values_log)
+    method_type = "SIGNIN"
+    tracking_code, message, info = check_signin(conn=conn, cursor=cursor, data=order_data)
+    if info is None:
         cursor.close()
         conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": "SIGNIN",
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": message}
+    elif tracking_code:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": info}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات شما در سامانه یافت نشد"}
 
 
 def add_consultant(conn, cursor, order_data, info):
-    try:
-        method_type = "INSERT"
-        if info["role"] == "ins":
-            token, message = insert_ins_con(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
-            if token:
-                return {"status": 200, "tracking_code": token, "method_type": method_type,
-                        "response": {"message": message}}
-            else:
-                return {"status": 200, "tracking_code": None, "method_type": method_type,
-                        "error": message}
-        else:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": "شما به این متد دسترسی ندارید."}
-    except Exception as e:
-        print(">>> user add_consultant error", e)
-        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-        values_log = (
-            None, None, "add_consultant", "bbc_api",
-            json.dumps(order_data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-                               values=values_log)
+    method_type = "INSERT"
+    if info.get("role") == "ins":
+        token, message = insert_ins_con(conn, cursor, order_data, info)
         cursor.close()
         conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": None,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+        else:
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "شما به این متد دسترسی ندارید."}
 
 
 def add_student(conn, cursor, order_data, info):
-    try:
-        method_type = "INSERT"
-        if info["role"] == "ins":
-            token, message = insert_ins_stu(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
-            if token:
-                return {"status": 200, "tracking_code": token, "method_type": method_type,
-                        "response": {"message": message}}
-            else:
-                return {"status": 200, "tracking_code": None, "method_type": method_type,
-                        "error": message}
-        elif info["role"] == "con":
-            token, message = insert_con_stu(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
-            if token:
-                return {"status": 200, "tracking_code": token, "method_type": method_type,
-                        "response": {"message": message}}
-            else:
-                return {"status": 200, "tracking_code": None, "method_type": method_type,
-                        "error": message}
-        else:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": "شما به این متد دسترسی ندارید."}
-    except Exception as e:
-        print(">>> user add_student error", e)
-        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-        values_log = (
-            None, None, "add_student", "bbc_api",
-            json.dumps(order_data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-                               values=values_log)
+    method_type = "INSERT"
+    if info.get("role") == "ins":
+        token, message = insert_ins_stu(conn, cursor, order_data, info)
         cursor.close()
         conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": None,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+        else:
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    elif info.get("role") == "con":
+        token, message = insert_con_stu(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+        else:
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "شما به این متد دسترسی ندارید."}
 
 
 def update_user(conn, cursor, order_data, info):
-    try:
-        method_type = "UPDATE"
-        if info["role"] == "ins":
-            token, message, data = update_ins_user_profile(conn, cursor, order_data, info)
-            if token:
-                return {"status": 200, "tracking_code": token, "method_type": method_type,
-                        "response": {"data": data, "message": message}}
-            else:
-                return {"status": 200, "tracking_code": token, "method_type": method_type,
-                        "response": {"message": message}}
-        elif info["role"] == "con":
-            token, message, data = update_con_user_profile(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": token, "method_type": method_type,
-                    "response": {"data": data, "message": message}}
-        elif info["role"] == "stu":
-            token, message, data = update_stu_user_profile(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
+    method_type = "UPDATE"
+    if info.get("role") == "ins":
+        token, message, data = update_ins_user_profile(conn, cursor, order_data, info)
+        if token:
             return {"status": 200, "tracking_code": token, "method_type": method_type,
                     "response": {"data": data, "message": message}}
         else:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": "شما به این متد دسترسی ندارید."}
-    except Exception as e:
-        print(">>> user update_user error", e)
-        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-        values_log = (
-            None, None, "update_user", "bbc_api",
-            json.dumps(order_data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-                               values=values_log)
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+    elif info.get("role") == "con":
+        token, message, data = update_con_user_profile(conn, cursor, order_data, info)
         cursor.close()
         conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": None,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"data": data, "message": message}}
+        else:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+
+    elif info.get("role") == "stu":
+        token, message, data = update_stu_user_profile(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"data": data, "message": message}}
+        else:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "شما به این متد دسترسی ندارید."}
 
 
 def update_password(conn, cursor, order_data, info):
-    try:
-        method_type = "UPDATE"
-        if info["role"] == "ins":
-            token, message = update_ins_password(conn, cursor, order_data, info)
-            return {"status": 200, "tracking_code": token, "method_type": method_type,
-                    "response": {"message": message}}
-        elif info["role"] == "con":
-            token, message = update_con_password(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": token, "method_type": method_type,
-                    "response": {"message": message}}
-        elif info["role"] == "stu":
-            token, message = update_stu_password(conn, cursor, order_data, info)
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": token, "method_type": method_type,
-                    "response": {"message": message}}
-        else:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": "شما به این متد دسترسی ندارید."}
-    except Exception as e:
-        print(">>> user update_password error", e)
-        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-        values_log = (
-            None, None, "update_password", "bbc_api",
-            json.dumps(order_data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-                               values=values_log)
+    method_type = "UPDATE"
+    if info.get("role") == "ins":
+        token, message = update_ins_password(conn, cursor, order_data, info)
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"message": message}}
+    elif info.get("role") == "con":
+        token, message = update_con_password(conn, cursor, order_data, info)
         cursor.close()
         conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": None,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"message": message}}
+    elif info.get("role") == "stu":
+        token, message = update_stu_password(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"message": message}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "شما به این متد دسترسی ندارید."}
 
 
 def update_student_info(conn, cursor, order_data, info):
-    try:
-        method_type = "UPDATE"
-        have_access = check_user_request(conn, cursor, order_data, info)
-        if not have_access:
-            return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
-        if info["role"] == ["ins", "con", "stu"]:
-            token, message, finalized = update_stu_info(conn, cursor, order_data, info, order_data["finalized"])
-            cursor.close()
-            conn.close()
-            if token:
-                return {"status": 200, "tracking_code": token, "method_type": method_type,
-                        "response": {"message": message, "finalized": finalized}}
-            else:
-                return {"status": 200, "tracking_code": None, "method_type": method_type,
-                        "error": message}
-        else:
-            cursor.close()
-            conn.close()
-            return {"status": 200, "tracking_code": None, "method_type": method_type,
-                    "error": "شما به این متد دسترسی ندارید."}
-    except Exception as e:
-        print(">>> user update_student_info error", e)
-        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-        values_log = (
-            None, None, "update_password", "bbc_api",
-            json.dumps(order_data, ensure_ascii=False), str(e))
-        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-                               values=values_log)
+    method_type = "UPDATE"
+    have_access = check_user_request(conn, cursor, order_data, info)
+    if not have_access:
+        return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
+    if info.get("role") == ["ins", "con", "stu"]:
+        token, message, finalized = update_stu_info(conn, cursor, order_data, info, order_data["finalized"])
         cursor.close()
         conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": None,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message, "finalized": finalized}}
+        else:
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "شما به این متد دسترسی ندارید."}
 
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"
-#     if info["role"] == "ins":
+#     if info.get("role") == "ins":
 #         token, message, finalized = update_ins_stu(conn, cursor, order_data, info)
 #         cursor.close()
 #         conn.close()
@@ -287,7 +209,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         else:
 #             return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                     "error": message}
-#     if info["role"] == "oCon":
+#     if info.get("role") == "oCon":
 #         token, message, finalized = update_oCon_stu(conn, cursor, order_data, info)
 #         cursor.close()
 #         conn.close()
@@ -297,7 +219,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         else:
 #             return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                     "error": message}
-#     elif info["role"] == "hCon":
+#     elif info.get("role") == "hCon":
 #         token, message, finalized = update_hCon_stu(conn, cursor, order_data, info)
 #         cursor.close()
 #         conn.close()
@@ -307,7 +229,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         else:
 #             return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                     "error": message}
-#     elif info["role"] == "con":
+#     elif info.get("role") == "con":
 #         token, message, finalized = update_con_stu(conn, cursor, order_data, info)
 #         cursor.close()
 #         conn.close()
@@ -324,7 +246,7 @@ def update_student_info(conn, cursor, order_data, info):
 #                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 # def update_consultant(conn, cursor, order_data, info):
 #     method_type = "UPDATE"
-#     if info["role"] == "ins":
+#     if info.get("role") == "ins":
 #         token, message = update_ins_con(conn, cursor, order_data, info)
 #         cursor.close()
 #         conn.close()
@@ -334,7 +256,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         else:
 #             return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                     "error": message}
-#     elif info["role"] == "hCon":
+#     elif info.get("role") == "hCon":
 #         token, message = update_hCon_con(conn, cursor, order_data, info)
 #         cursor.close()
 #         conn.close()
@@ -380,7 +302,7 @@ def update_student_info(conn, cursor, order_data, info):
 # def accept_check_user_info(conn, cursor, order_data, info):
 #     method_type = "SELECT"
 #     query = 'SELECT finalized FROM BBC.dbo.stu WHERE user_id = ?'
-#     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if res is None:
 #         cursor.close()
 #         conn.close()
@@ -705,11 +627,11 @@ def update_student_info(conn, cursor, order_data, info):
 #                 FROM BBC.dbo.hoshmand_info
 #                 WHERE user_id = ?
 #                 '''
-#         hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#         hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #         if not hoshmand_data:
 #             field = '([user_id], [phone])'
 #             values = (
-#                 info["user_id"], info["phone"])
+#                 info.get("user_id"), info.get("phone"))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_info', fields=field,
 #                                    values=values)
 #         info = {
@@ -744,11 +666,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_info
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [terms_accepted], [current_step])'
 #         values = (
-#             info["user_id"], info["phone"], order_data["terms_accepted"], order_data["current_step"])
+#             info.get("user_id"), info.get("phone"), order_data["terms_accepted"], order_data["current_step"])
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_info', fields=field,
 #                                values=values)
 #     else:
@@ -757,12 +679,12 @@ def update_student_info(conn, cursor, order_data, info):
 #             ['terms_accepted', 'current_step', 'edited_time'],
 #             [order_data["terms_accepted"], order_data["current_step"],
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         # delete_unneeded_table(
 #         #     conn, cursor,
 #         #     ["hoshmand_examtype", "hoshmand_major", "hoshmand_province", "hoshmand_tables", "hoshmand_universities",
-#         #      "hoshmand_chains", "hoshmand_fields"], info["user_id"])
+#         #      "hoshmand_chains", "hoshmand_fields"], info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -792,11 +714,11 @@ def update_student_info(conn, cursor, order_data, info):
 #         FROM BBC.dbo.hoshmand_questions
 #         WHERE user_id = ?
 #         '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [examtype], [univercity], [major], [obligation], [method])'
 #         values = (
-#             info["user_id"], info["phone"], 3, 3, 3,
+#             info.get("user_id"), info.get("phone"), 3, 3, 3,
 #             '0,1', 'با آزمون,صرفا با سوابق تحصیلی')
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_questions', fields=field,
 #                                values=values)
@@ -807,7 +729,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         "obligation": hoshmand_data[3] if hoshmand_data else '0,1',
 #         "method": hoshmand_data[4] if hoshmand_data else 'با آزمون,صرفا با سوابق تحصیلی',
 #     }
-#     update_step_hoshmand(conn, cursor, 1, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 1, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -828,11 +750,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_questions
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [examtype], [univercity], [major], [obligation], [method])'
 #         values = (
-#             info["user_id"], info["phone"], order_data["examtype"], order_data["univercity"], order_data["major"],
+#             info.get("user_id"), info.get("phone"), order_data["examtype"], order_data["univercity"], order_data["major"],
 #             order_data["obligation"], order_data["method"])
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_questions', fields=field,
 #                                values=values)
@@ -843,12 +765,12 @@ def update_student_info(conn, cursor, order_data, info):
 #             [order_data["examtype"], order_data["univercity"], order_data["major"],
 #              order_data["obligation"], order_data["method"],
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         delete_unneeded_table(
 #             conn, cursor,
 #             ["hoshmand_examtype", "hoshmand_major", "hoshmand_province", "hoshmand_tables", "hoshmand_universities",
-#              "hoshmand_chains", "hoshmand_fields"], info["user_id"])
+#              "hoshmand_chains", "hoshmand_fields"], info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -871,11 +793,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_examtype
 #             WHERE user_id = ?
 #         '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     query_question = 'select obligation, method from BBC.dbo.hoshmand_questions where user_id = ?'
-#     question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+#     question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info.get("user_id"))
 #     query_student = 'select sex, field, city, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #     field = str(student[1])
 #     if student[3] != 0 and student[3]:
 #         field += "," + str(4)
@@ -897,7 +819,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         print(">>> excp in get_hoshmand_examtype", e)
 #         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #         values_log = (
-#             info["user_id"], info["phone"], "Get_TypeExamTurns_new", json.dumps(values, ensure_ascii=False),
+#             info.get("user_id"), info.get("phone"), "Get_TypeExamTurns_new", json.dumps(values, ensure_ascii=False),
 #             json.dumps(data, ensure_ascii=False), str(e))
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                values=values_log)
@@ -909,7 +831,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         user_data = None
 #     else:
 #         user_data = json.loads(hoshmand_data[0])
-#     update_step_hoshmand(conn, cursor, 2, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 2, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -933,11 +855,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_examtype
 #             WHERE user_id = ?
 #         '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [data], [examtypes])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(order_data["data"], ensure_ascii=False), order_data["examtypes"])
+#             info.get("user_id"), info.get("phone"), json.dumps(order_data["data"], ensure_ascii=False), order_data["examtypes"])
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_examtype', fields=field,
 #                                values=values)
 #     else:
@@ -946,12 +868,12 @@ def update_student_info(conn, cursor, order_data, info):
 #             ['data', 'examtypes', 'edited_time'],
 #             [json.dumps(order_data["data"], ensure_ascii=False), order_data["examtypes"],
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         delete_unneeded_table(
 #             conn, cursor,
 #             ["hoshmand_major", "hoshmand_province", "hoshmand_tables", "hoshmand_universities", "hoshmand_chains",
-#              "hoshmand_fields"], info["user_id"])
+#              "hoshmand_fields"], info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -974,18 +896,18 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_major
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     query_examtypes = '''
 #             SELECT
 #                 examtypes
 #             FROM BBC.dbo.hoshmand_examtype
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_examtypes = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtypes, field=info["user_id"])
+#     hoshmand_examtypes = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtypes, field=info.get("user_id"))
 #     query_question = 'select obligation, method from BBC.dbo.hoshmand_questions where user_id = ?'
-#     question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+#     question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info.get("user_id"))
 #     query_student = 'select sex, field, city, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #     majors = []
 #     field = str(student[1])
 #     if student[3] != 0 and student[3]:
@@ -1006,7 +928,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         print(">>> excp in get_hoshmand_major", e)
 #         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #         values_log = (
-#             info["user_id"], info["phone"], "Get_Majors_new", json.dumps(values, ensure_ascii=False),
+#             info.get("user_id"), info.get("phone"), "Get_Majors_new", json.dumps(values, ensure_ascii=False),
 #             json.dumps(data, ensure_ascii=False), str(e))
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                values=values_log)
@@ -1016,7 +938,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         user_data = None
 #     else:
 #         user_data = json.loads(hoshmand_data[0])
-#     update_step_hoshmand(conn, cursor, 3, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 3, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1039,11 +961,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_major
 #             WHERE user_id = ?
 #         '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [data], [majors], [major1], [major2], [major3], [major4])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(order_data["data"], ensure_ascii=False), order_data["majors"],
+#             info.get("user_id"), info.get("phone"), json.dumps(order_data["data"], ensure_ascii=False), order_data["majors"],
 #             order_data["major1"],
 #             order_data["major2"], order_data["major3"], order_data["major4"])
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_major', fields=field,
@@ -1055,11 +977,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             [json.dumps(order_data["data"], ensure_ascii=False), order_data["majors"], order_data["major1"],
 #              order_data["major2"], order_data["major3"], order_data["major4"],
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         delete_unneeded_table(conn, cursor,
 #                               ["hoshmand_province", "hoshmand_tables", "hoshmand_universities", "hoshmand_chains",
-#                                "hoshmand_fields"], info["user_id"])
+#                                "hoshmand_fields"], info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1081,17 +1003,17 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_province
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     query_student = 'select sex, field, city, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #     majors = []
 #     if not hoshmand_data:
 #         query_majors = 'select majors from BBC.dbo.hoshmand_major where user_id = ?'
-#         majors_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info["user_id"])
+#         majors_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info.get("user_id"))
 #         query_examtype = 'select examtypes from BBC.dbo.hoshmand_examtype where user_id = ?'
-#         examtype_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info["user_id"])
+#         examtype_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info.get("user_id"))
 #         query_question = 'select obligation, method from BBC.dbo.hoshmand_questions where user_id = ?'
-#         question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+#         question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info.get("user_id"))
 #         field = str(student[1])
 #         if student[3] != 0 and student[3]:
 #             field += "," + str(4)
@@ -1111,7 +1033,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             print(">>> excp in get_hoshmand_province", e)
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Get_Provinces_new", json.dumps(values, ensure_ascii=False),
+#                 info.get("user_id"), info.get("phone"), "Get_Provinces_new", json.dumps(values, ensure_ascii=False),
 #                 json.dumps(data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                    values=values_log)
@@ -1164,7 +1086,7 @@ def update_student_info(conn, cursor, order_data, info):
 #
 #         field = '([user_id], [phone], [data], [province1], [province2], [province3], [province4], [province5], [province6])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(user_data, ensure_ascii=False), province1,
+#             info.get("user_id"), info.get("phone"), json.dumps(user_data, ensure_ascii=False), province1,
 #             province2, province3, province4, province5, ""
 #         )
 #         db_helper.insert_value(
@@ -1176,7 +1098,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         )
 #     else:
 #         user_data = json.loads(hoshmand_data[0])
-#     update_step_hoshmand(conn, cursor, 4, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 4, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1199,11 +1121,11 @@ def update_student_info(conn, cursor, order_data, info):
 #                 FROM BBC.dbo.hoshmand_province
 #                 WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [data], [province1], [province2], [province3], [province4], [province5], [province6])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(order_data["data"], ensure_ascii=False), order_data["province1"],
+#             info.get("user_id"), info.get("phone"), json.dumps(order_data["data"], ensure_ascii=False), order_data["province1"],
 #             order_data["province2"], order_data["province3"], order_data["province4"], order_data["province5"],
 #             order_data["province6"])
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_province', fields=field,
@@ -1216,11 +1138,11 @@ def update_student_info(conn, cursor, order_data, info):
 #              order_data["province2"], order_data["province3"], order_data["province4"], order_data["province5"],
 #              order_data["province6"],
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         delete_unneeded_table(conn, cursor,
 #                               ["hoshmand_tables", "hoshmand_universities", "hoshmand_chains",
-#                                "hoshmand_fields"], info["user_id"])
+#                                "hoshmand_fields"], info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1244,14 +1166,14 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_tables
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     query_student = 'select sex, field, city, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #     query_examtype = 'select examtypes from BBC.dbo.hoshmand_examtype where user_id = ?'
-#     examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info["user_id"])
+#     examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info.get("user_id"))
 #     exam_types = examtypes_result[0].split(',') if examtypes_result and examtypes_result[0] else []
 #     query_question = 'select obligation, method from BBC.dbo.hoshmand_questions where user_id = ?'
-#     question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+#     question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field_state = str(student[1])
 #         if student[3] != 0 and student[3]:
@@ -1262,7 +1184,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         print("finish_select ", start_select - finish_select)
 #         major_start = time.time()
 #         query_majors = 'select major1, major2, major3, major4, majors from BBC.dbo.hoshmand_major where user_id = ?'
-#         majors = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info["user_id"])
+#         majors = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info.get("user_id"))
 #         sql = 'exec Note.smart.Get_Major_TypeExamTurn_Block_States_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
 #         values = (
 #             field_state, student[0], student[2].split(",")[0],
@@ -1277,7 +1199,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             print(">>> excp in get_hoshmand_tables", e)
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Get_Major_TypeExamTurn_Block_States_new",
+#                 info.get("user_id"), info.get("phone"), "Get_Major_TypeExamTurn_Block_States_new",
 #                 json.dumps(values, ensure_ascii=False),
 #                 json.dumps(data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
@@ -1298,7 +1220,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         province_start = time.time()
 #
 #         query_province = 'select province1, province2, province3, province4, province5 from BBC.dbo.hoshmand_province where user_id = ?'
-#         province = db_helper.search_table(conn=conn, cursor=cursor, query=query_province, field=info["user_id"])
+#         province = db_helper.search_table(conn=conn, cursor=cursor, query=query_province, field=info.get("user_id"))
 #         sql = 'exec Note.smart.Get_University_Blocks_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
 #         values = (
 #             field_state, student[0],
@@ -1314,7 +1236,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             print(">>> excp in get_hoshmand_tables", e)
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Get_University_Blocks_new", json.dumps(values, ensure_ascii=False),
+#                 info.get("user_id"), info.get("phone"), "Get_University_Blocks_new", json.dumps(values, ensure_ascii=False),
 #                 json.dumps(data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                    values=values_log)
@@ -1344,16 +1266,16 @@ def update_student_info(conn, cursor, order_data, info):
 #
 #         uni_start = time.time()
 #         query_uni = 'select id from BBC.dbo.hoshmand_universities where user_id = ?'
-#         uni_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_uni, field=info["user_id"])
+#         uni_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_uni, field=info.get("user_id"))
 #         if uni_res:
 #             db_helper.delete_record(
 #                 conn, cursor, 'hoshmand_universities',
 #                 ["user_id"],
-#                 [str(info["user_id"])]
+#                 [str(info.get("user_id"))]
 #             )
 #         field = '([user_id], [phone], [uni1], [uni2], [uni3], [uni4], [uni5], [uni6], [uni7], [uni8], [uni9], [uni10], [uni11])'
 #         values = (
-#             info["user_id"], info["phone"], uni[0], uni[1], uni[2], uni[3], uni[4], uni[5], uni[6], uni[7], uni[8],
+#             info.get("user_id"), info.get("phone"), uni[0], uni[1], uni[2], uni[3], uni[4], uni[5], uni[6], uni[7], uni[8],
 #             uni[9], uni[10])
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_universities', fields=field,
 #                                values=values)
@@ -1375,7 +1297,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             print(">>> excp in get_hoshmand_tables", e)
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Get_University_TypeExamTurn_Block_States_new",
+#                 info.get("user_id"), info.get("phone"), "Get_University_TypeExamTurn_Block_States_new",
 #                 json.dumps(values, ensure_ascii=False),
 #                 json.dumps(data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
@@ -1392,7 +1314,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         print("table ", table_finish - table_start)
 #         field = '([user_id], [phone], [data_table1], [data_table2])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(skills_table, ensure_ascii=False),
+#             info.get("user_id"), info.get("phone"), json.dumps(skills_table, ensure_ascii=False),
 #             json.dumps(universities_table, ensure_ascii=False)
 #         )
 #         db_helper.insert_value(
@@ -1406,7 +1328,7 @@ def update_student_info(conn, cursor, order_data, info):
 #     else:
 #         universities_table = json.loads(hoshmand_data[1])
 #         skills_table = json.loads(hoshmand_data[0])
-#     update_step_hoshmand(conn, cursor, 5, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 5, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1430,12 +1352,12 @@ def update_student_info(conn, cursor, order_data, info):
 #                 FROM BBC.dbo.hoshmand_tables
 #                 WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     # chains = prepare_chain_data(conn, cursor, info, order_data)
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [data_table1], [data_table2])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(order_data["skills"], ensure_ascii=False),
+#             info.get("user_id"), info.get("phone"), json.dumps(order_data["skills"], ensure_ascii=False),
 #             json.dumps(order_data["universities"], ensure_ascii=False))
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_tables', fields=field,
 #                                values=values)
@@ -1446,14 +1368,14 @@ def update_student_info(conn, cursor, order_data, info):
 #             [json.dumps(order_data["skills"], ensure_ascii=False),
 #              json.dumps(order_data["universities"], ensure_ascii=False),
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         delete_unneeded_table(conn, cursor,
-#                               ["hoshmand_chains", "hoshmand_fields"], info["user_id"])
+#                               ["hoshmand_chains", "hoshmand_fields"], info.get("user_id"))
 #
 #     # field = '([user_id], [phone], [chains], [deleted_chains])'
 #     # values = (
-#     #     info["user_id"], info["phone"], json.dumps(chains, ensure_ascii=False), json.dumps([], ensure_ascii=False))
+#     #     info.get("user_id"), info.get("phone"), json.dumps(chains, ensure_ascii=False), json.dumps([], ensure_ascii=False))
 #     # db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_chains', fields=field,
 #     #                        values=values)
 #
@@ -1479,13 +1401,13 @@ def update_student_info(conn, cursor, order_data, info):
 #            FROM BBC.dbo.hoshmand_chains
 #            WHERE user_id = ?
 #            '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         start_select = time.time()
 #         query_student = 'select sex, field, city, rank_zaban, rank_honar, quota from BBC.dbo.stu where user_id = ?'
-#         student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#         student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #         query_question = 'select obligation, method, univercity, major from BBC.dbo.hoshmand_questions where user_id = ?'
-#         question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+#         question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info.get("user_id"))
 #         field = str(student[1])
 #         if student[3] != 0 and student[3]:
 #             field += "," + str(4)
@@ -1498,7 +1420,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         print("select ", finish_select - start_select)
 #         sql = 'exec Note.smart.Create_Chanis_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
 #         values = (
-#             info["user_id"], student[5], field, student[0],
+#             info.get("user_id"), student[5], field, student[0],
 #             student[2].split(",")[0], str(question[0]), str(question[1]), 1404, sorting_major_uni, "BBC"
 #         )
 #         recs = []
@@ -1511,7 +1433,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             print(">>> excp in get_hoshmand_chains", e)
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Create_Chanis_new", json.dumps(values, ensure_ascii=False),
+#                 info.get("user_id"), info.get("phone"), "Create_Chanis_new", json.dumps(values, ensure_ascii=False),
 #                 json.dumps(order_data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                    values=values_log)
@@ -1534,13 +1456,13 @@ def update_student_info(conn, cursor, order_data, info):
 #         print("recs ", finish_recs - start_recs)
 #         field = '([user_id], [phone], [chains], [deleted_chains])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(processed_recs, ensure_ascii=False),
+#             info.get("user_id"), info.get("phone"), json.dumps(processed_recs, ensure_ascii=False),
 #             json.dumps([], ensure_ascii=False))
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_chains', fields=field,
 #                                values=values)
 #     else:
 #         processed_recs = json.loads(hoshmand_data[0])
-#     update_step_hoshmand(conn, cursor, 6, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 6, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1565,11 +1487,11 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_chains
 #             WHERE user_id = ?
 #         '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         field = '([user_id], [phone], [chains], [majors], [universities], [deleted_chains])'
 #         values = (
-#             info["user_id"], info["phone"], json.dumps(order_data["chains"], ensure_ascii=False), order_data['majors'], \
+#             info.get("user_id"), info.get("phone"), json.dumps(order_data["chains"], ensure_ascii=False), order_data['majors'], \
 #             order_data['universities'], json.dumps(order_data["deleted_chains"], ensure_ascii=False))
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_chains', fields=field,
 #                                values=values)
@@ -1580,10 +1502,10 @@ def update_student_info(conn, cursor, order_data, info):
 #             [json.dumps(order_data["chains"], ensure_ascii=False), order_data['majors'], order_data['universities'],
 #              json.dumps(order_data["deleted_chains"], ensure_ascii=False),
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #         delete_unneeded_table(conn, cursor,
-#                               ["hoshmand_fields"], info["user_id"])
+#                               ["hoshmand_fields"], info.get("user_id"))
 #
 #     token = str(uuid.uuid4())
 #     cursor.close()
@@ -1600,14 +1522,14 @@ def update_student_info(conn, cursor, order_data, info):
 #
 # def prepare_chain_data(conn, cursor, info, order_data):
 #     query_majors = 'SELECT major1, major2, major3, major4 FROM BBC.dbo.hoshmand_major WHERE user_id = ?'
-#     majors_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info["user_id"])
+#     majors_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info.get("user_id"))
 #
 #     query_universities = 'SELECT uni1, uni2, uni3, uni4, uni5, uni6, uni7, uni8, uni9, uni10, uni11 FROM BBC.dbo.hoshmand_universities WHERE user_id = ?'
 #     universities_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_universities,
-#                                                  field=info["user_id"])
+#                                                  field=info.get("user_id"))
 #
 #     query_examtype = 'SELECT examtypes FROM BBC.dbo.hoshmand_examtype WHERE user_id = ?'
-#     examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info["user_id"])
+#     examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info.get("user_id"))
 #     exam_types = examtypes_result[0].split(',') if examtypes_result and examtypes_result[0] else []
 #
 #     majors_list = []
@@ -1669,7 +1591,7 @@ def update_student_info(conn, cursor, order_data, info):
 # def get_hoshmand_chain_code(conn, cursor, order_data, info):
 #     method_type = "SELECT"
 #     query_student = 'select sex, field, city, rank, quota, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #     fields = []
 #     field = str(student[1])
 #     if student[5] != 0 and student[5]:
@@ -1690,7 +1612,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         print(">>> excp in get_hoshmand_chain_code", e)
 #         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #         values_log = (
-#             info["user_id"], info["phone"], "Get_Chain_Fields_new", json.dumps(values, ensure_ascii=False),
+#             info.get("user_id"), info.get("phone"), "Get_Chain_Fields_new", json.dumps(values, ensure_ascii=False),
 #             json.dumps(order_data, ensure_ascii=False), str(e))
 #         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                values=values_log)
@@ -1733,14 +1655,14 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_fields
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if not hoshmand_data:
 #         query_student = 'select sex, field, city, rank, quota, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#         student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#         student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #         query_question = 'select obligation, method, univercity, major from BBC.dbo.hoshmand_questions where user_id = ?'
-#         question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+#         question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info.get("user_id"))
 #         query = 'SELECT suggested, other FROM BBC.dbo.hedayat_fields WHERE user_id = ?'
-#         res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#         res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #         suggested_fields = None
 #         other_fields = None
 #         if res_hedayat is not None:
@@ -1757,7 +1679,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         fields = []
 #         sql = 'exec Note.smart.Get_Fields_By_Chains_new ?, ?, ?, ?, ?, ?, ?, ?'
 #         values = (
-#             info["user_id"], field, student[4], student[3], 1404, suggested_fields, other_fields, "BBC"
+#             info.get("user_id"), field, student[4], student[3], 1404, suggested_fields, other_fields, "BBC"
 #             # , 1, 1000,  student[0], student[2].split(",")[0],
 #             # str(question[0]), str(question[1]), sorting_major_uni
 #         )
@@ -1770,7 +1692,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             print(">>> excp in get_hoshmand_fields", e)
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Get_Fields_By_Chains_new", json.dumps(values, ensure_ascii=False),
+#                 info.get("user_id"), info.get("phone"), "Get_Fields_By_Chains_new", json.dumps(values, ensure_ascii=False),
 #                 json.dumps(order_data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                    values=values_log)
@@ -1796,8 +1718,8 @@ def update_student_info(conn, cursor, order_data, info):
 #             empty_list_json = str(empty_list_json) if empty_list_json else ''
 #             field = '([user_id], [phone], [all_list], [field_list], [selected_list], [trash_list], [hoshmand_list])'
 #             values = (
-#                 info["user_id"],
-#                 info["phone"],
+#                 info.get("user_id"),
+#                 info.get("phone"),
 #                 field_json,
 #                 field_json,
 #                 empty_list_json,
@@ -1825,7 +1747,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         fields = json.loads(hoshmand_data[1])
 #         selected_list = json.loads(hoshmand_data[2])
 #         is_hoshmand = True if hoshmand_data[3] == 1 else False
-#     update_step_hoshmand(conn, cursor, 7, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 7, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1849,7 +1771,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         [json.dumps(order_data["fields_list"], ensure_ascii=False),
 #          json.dumps(order_data["selected_list"], ensure_ascii=False),
 #          datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#         "user_id = ?", [str(info["user_id"])]
+#         "user_id = ?", [str(info.get("user_id"))]
 #     )
 #     token = str(uuid.uuid4())
 #     cursor.close()
@@ -1874,9 +1796,9 @@ def update_student_info(conn, cursor, order_data, info):
 #             FROM BBC.dbo.hoshmand_fields
 #             WHERE user_id = ?
 #             '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     token, dash_info, message = select_student_info(conn, cursor, info)
-#     update_step_hoshmand(conn, cursor, 8, info["user_id"])
+#     update_step_hoshmand(conn, cursor, 8, info.get("user_id"))
 #     token = str(uuid.uuid4())
 #     cursor.close()
 #     conn.close()
@@ -1902,7 +1824,7 @@ def update_student_info(conn, cursor, order_data, info):
 #          json.dumps(order_data["trash_list"], ensure_ascii=False),
 #          # json.dumps(order_data["hoshmand_list"], ensure_ascii=False),
 #          datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#         "user_id = ?", [str(info["user_id"])]
+#         "user_id = ?", [str(info.get("user_id"))]
 #     )
 #     token = str(uuid.uuid4())
 #     cursor.close()
@@ -1933,9 +1855,9 @@ def update_student_info(conn, cursor, order_data, info):
 #         FROM BBC.dbo.hoshmand_chains
 #         WHERE user_id = ?
 #     '''
-#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     query_student = 'select field, rank, quota, rank_zaban, rank_honar from BBC.dbo.stu where user_id = ?'
-#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+#     student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info.get("user_id"))
 #     field = str(student.field)
 #     if student.rank_zaban != 0 and student.rank_zaban:
 #         field += "," + str(4)
@@ -1943,7 +1865,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         field += "," + str(5)
 #     code_reshteh_list = []
 #     query = 'SELECT suggested, other FROM BBC.dbo.hedayat_fields WHERE user_id = ?'
-#     res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+#     res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     suggested_fields = None
 #     other_fields = None
 #     if res_hedayat is not None:
@@ -1972,7 +1894,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         try:
 #             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
 #             values_log = (
-#                 info["user_id"], info["phone"], "Delete_Fields", json.dumps(values, ensure_ascii=False),
+#                 info.get("user_id"), info.get("phone"), "Delete_Fields", json.dumps(values, ensure_ascii=False),
 #                 json.dumps(order_data, ensure_ascii=False), str(e))
 #             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
 #                                    values=values_log)
@@ -2008,7 +1930,7 @@ def update_student_info(conn, cursor, order_data, info):
 #             [1, json.dumps(fields, ensure_ascii=False),
 #              json.dumps(fields, ensure_ascii=False),
 #              datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [str(info["user_id"])]
+#             "user_id = ?", [str(info.get("user_id"))]
 #         )
 #     except Exception as e:
 #         print(">>>>>> exception", e)
@@ -2022,7 +1944,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         FROM BBC.dbo.hoshmand_fields
 #         WHERE user_id = ?
 #         '''
-#         hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=str(info["user_id"]))
+#         hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=str(info.get("user_id")))
 #     except Exception as e:
 #         print(">>>>>> ", e)
 #     token = str(uuid.uuid4())

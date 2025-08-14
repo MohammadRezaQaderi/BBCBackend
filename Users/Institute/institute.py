@@ -142,6 +142,29 @@ def update_ins_password(conn, cursor, order_data, info):
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده"
 
+
+def update_user_ins_pic(conn, cursor, order_data, info):
+    try:
+        row_count = db_helper.update_record(
+            conn, cursor, "ins", ['name', 'logo', 'edited_time'],
+            [order_data["name"], order_data["pic"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "user_id = ?", [info["user_id"]]
+        )
+        if row_count > 0:
+            token = str(uuid.uuid4())
+            return token, {"name": order_data["name"], "pic": order_data["pic"]}, "اطلاعات شما با موفقیت تغییر یافت."
+        else:
+            return None, None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "update_user_ins_pic",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+
 # def select_ins_dashboard(conn, cursor, order_data):
 #     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM BBC.dbo.capacity WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["user_id"])
@@ -554,22 +577,7 @@ def update_ins_password(conn, cursor, order_data, info):
 #         return None, "تغییرات شما اعمال نشد. لطفا از پشتیبانی پیگیری بفرمایید.", 0
 #
 #
-# def update_user_ins_pic(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     row_count = db_helper.update_record(
-#         conn, cursor, "ins", ['name', 'logo', 'edited_time'],
-#         [order_data["name"], order_data["pic"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#         "user_id = ?", [info["user_id"]]
-#     )
-#     if row_count > 0:
-#         token = str(uuid.uuid4())
-#         return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                 "response": {"data": {"name": order_data["name"], "pic": order_data["pic"]},
-#                              "message": "اطلاعات شما با موفقیت تغییر یافت."}}
-#     else:
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."}
-#
+
 #
 # def select_ins_cons_stu(conn, cursor, order_data, info):
 #     query = 'SELECT user_id, first_name, last_name FROM BBC.dbo.con WHERE ins_id = ? order by created_time desc'

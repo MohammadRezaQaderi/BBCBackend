@@ -1,9 +1,10 @@
 import uuid
-from Helper import db_helper
 import json
 
+from Helper import db_helper
 
-def get_majors(conn, cursor, data):
+
+def get_majors(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -54,10 +55,10 @@ def get_majors(conn, cursor, data):
                 majors.append(res[0])
         return tracking_code, majors
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Get_Majors",
+            info.get("user_id"), info.get("phone"), "Get_Majors",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -65,7 +66,7 @@ def get_majors(conn, cursor, data):
         return None, []
 
 
-def get_exam_types(conn, cursor, data):
+def get_exam_types(conn, cursor, data, info):
     values = ()
     try:
         cities = data["cities"]
@@ -115,10 +116,10 @@ def get_exam_types(conn, cursor, data):
                 exam_types.append(res[0])
         return tracking_code, exam_types
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Get_TypeExamTurns",
+            info.get("user_id"), info.get("phone"), "Get_TypeExamTurns",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -126,7 +127,7 @@ def get_exam_types(conn, cursor, data):
         return None, []
 
 
-def get_universities(conn, cursor, data):
+def get_universities(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -168,10 +169,10 @@ def get_universities(conn, cursor, data):
                 universities.append(res[0])
         return tracking_code, universities
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Get_Universities",
+            info.get("user_id"), info.get("phone"), "Get_Universities",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -179,7 +180,7 @@ def get_universities(conn, cursor, data):
         return None, []
 
 
-def get_cities(conn, cursor, data):
+def get_cities(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -207,10 +208,10 @@ def get_cities(conn, cursor, data):
             city.append(res[0])
         return tracking_code, city
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Get_Cities",
+            info.get("user_id"), info.get("phone"), "Get_Cities",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -218,7 +219,7 @@ def get_cities(conn, cursor, data):
         return None, []
 
 
-def get_provinces(conn, cursor, data):
+def get_provinces(conn, cursor, data, info):
     values = ()
     try:
         field = data["field"]
@@ -238,10 +239,10 @@ def get_provinces(conn, cursor, data):
 
         return tracking_code, provinces
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Get_Provinces",
+            info.get("user_id"), info.get("phone"), "Get_Provinces",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -350,10 +351,10 @@ def search_fields(conn, cursor, data, info):
             fields.append(response)
         return tracking_code, fields, ""
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "Get_Fields",
+            info.get("user_id"), info.get("phone"), "Get_Fields",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -362,7 +363,7 @@ def search_fields(conn, cursor, data, info):
 
 
 # Free functionality
-def get_majors_fr(conn, cursor, data):
+def get_majors_fr(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -405,10 +406,10 @@ def get_majors_fr(conn, cursor, data):
                 majors.append(res[0])
         return tracking_code, majors
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Azad_Get_Majors",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Majors",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -416,7 +417,7 @@ def get_majors_fr(conn, cursor, data):
         return None, []
 
 
-def get_universities_fr(conn, cursor, data):
+def get_universities_fr(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -446,10 +447,10 @@ def get_universities_fr(conn, cursor, data):
             universities.append(res[0])
         return tracking_code, universities
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Azad_Get_Universities",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Universities",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -457,7 +458,7 @@ def get_universities_fr(conn, cursor, data):
         return None, []
 
 
-def get_provinces_fr(conn, cursor, data):
+def get_provinces_fr(conn, cursor, data, info):
     values = ()
     try:
         field = data["field"]
@@ -478,10 +479,10 @@ def get_provinces_fr(conn, cursor, data):
             provinces.append(res[0])
         return tracking_code, provinces
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Azad_Get_Provinces",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Provinces",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -561,10 +562,10 @@ def search_fields_fr(conn, cursor, data, info):
             fields.append(response)
         return tracking_code, fields, ""
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "Azad_Get_Fields",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Fields",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -597,10 +598,10 @@ def update_spfr(conn, cursor, data, info):
         token = str(uuid.uuid4())
         return token, "لیست شما با موفقیت تغییر یافت."
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "update_spfr",
+            info.get("user_id"), info.get("phone"), "update_spfr",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -621,10 +622,10 @@ def get_spfr(conn, cursor, data, info):
             return token, []
         return token, json.loads(res_list[0])
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "get_spfr",
+            info.get("user_id"), info.get("phone"), "get_spfr",
             json.dumps([], ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -656,10 +657,10 @@ def update_trfr(conn, cursor, data, info):
         token = str(uuid.uuid4())
         return token, "لیست شما با موفقیت تغییر یافت."
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "update_trfr",
+            info.get("user_id"), info.get("phone"), "update_trfr",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -680,10 +681,10 @@ def get_trfr(conn, cursor, data, info):
             return token, []
         return token, json.loads(res_list[0])
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "get_trfr",
+            info.get("user_id"), info.get("phone"), "get_trfr",
             json.dumps([], ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -693,7 +694,7 @@ def get_trfr(conn, cursor, data, info):
 
 # Free Other functionality
 
-def get_majors_frb(conn, cursor, data):
+def get_majors_frb(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -736,10 +737,10 @@ def get_majors_frb(conn, cursor, data):
                 majors.append(res[0])
         return token, majors
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Azad_Get_Majors",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Majors",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -747,7 +748,7 @@ def get_majors_frb(conn, cursor, data):
         return None, []
 
 
-def get_universities_frb(conn, cursor, data):
+def get_universities_frb(conn, cursor, data, info):
     values = ()
     try:
         provinces = data["provinces"]
@@ -777,10 +778,10 @@ def get_universities_frb(conn, cursor, data):
             universities.append(res[0])
         return tracking_code, universities
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Azad_Get_Universities",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Universities",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -788,7 +789,7 @@ def get_universities_frb(conn, cursor, data):
         return None, []
 
 
-def get_provinces_frb(conn, cursor, data):
+def get_provinces_frb(conn, cursor, data, info):
     values = ()
     try:
         field = data["field"]
@@ -809,10 +810,10 @@ def get_provinces_frb(conn, cursor, data):
             provinces.append(res[0])
         return tracking_code, provinces
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            None, None, "Azad_Get_Provinces",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Provinces",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -878,10 +879,10 @@ def search_fields_frb(conn, cursor, data, info):
             fields.append(response)
         return tracking_code, fields, ""
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "Azad_Get_Fields",
+            info.get("user_id"), info.get("phone"), "Azad_Get_Fields",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -916,10 +917,10 @@ def update_spfrb(conn, cursor, data, info):
         token = str(uuid.uuid4())
         return token, "لیست شما با موفقیت تغییر یافت."
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "update_spfrb",
+            info.get("user_id"), info.get("phone"), "update_spfrb",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -946,10 +947,10 @@ def get_spfrb(conn, cursor, data, info):
             return token, []
         return token, json.loads(res_list[0])
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "get_spfrb",
+            info.get("user_id"), info.get("phone"), "get_spfrb",
             json.dumps([], ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -983,10 +984,10 @@ def update_trfrb(conn, cursor, data, info):
         token = str(uuid.uuid4())
         return token, "لیست شما با موفقیت تغییر یافت."
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "update_trfrb",
+            info.get("user_id"), info.get("phone"), "update_trfrb",
             json.dumps(values, ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,
@@ -1013,10 +1014,10 @@ def get_trfrb(conn, cursor, data, info):
             return token, []
         return token, json.loads(res_list[0])
     except Exception as e:
-        print(e)
+        conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
         values_log = (
-            info["user_id"], info["phone"], "get_spfrb",
+            info.get("user_id"), info.get("phone"), "get_spfrb",
             json.dumps([], ensure_ascii=False),
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='pickfield_logs', fields=field_log,

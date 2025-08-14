@@ -6,6 +6,10 @@ from datetime import datetime
 from Helper import db_helper
 from Users.Auth.auth import check_signin, token_remove
 from Users.Consultant.consultant import insert_con_stu, update_con_user_profile, update_con_password
+from Users.FieldPick.field_pick import update_spfr, update_trfr, update_spfrb, update_trfrb, get_majors, \
+    get_universities, get_cities, get_provinces, get_exam_types, search_fields, get_majors_fr, get_provinces_fr, \
+    get_universities_fr, search_fields_fr, get_spfr, get_trfr, get_majors_frb, get_provinces_frb, get_universities_frb, \
+    search_fields_frb, get_spfrb, get_trfrb
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info
 
@@ -197,6 +201,306 @@ def update_student_info(conn, cursor, order_data, info):
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "شما به این متد دسترسی ندارید."}
 
+
+def student_info(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, dash_info, message = select_student_info(conn, cursor, info)
+    if not token:
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "error": message}
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"data": dash_info}}
+
+
+# Field Pick API
+def update_spfr_list(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    tracking_code, message = update_spfr(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": {"message": message}}
+
+
+def update_trfr_list(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    tracking_code, message = update_trfr(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": {"message": message}}
+
+
+def select_spfr_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, data = get_spfr(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": data}
+
+
+def select_trfr_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, data = get_trfr(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": data}
+
+
+def update_spfrb_list(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    tracking_code, message = update_spfrb(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": {"message": message}}
+
+
+def update_trfrb_list(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    tracking_code, message = update_trfrb(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": {"message": message}}
+
+
+def select_spfrb_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, data = get_spfrb(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": data}
+
+
+def select_trfrb_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, data = get_trfrb(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+            "response": data}
+
+
+# Global Functionality
+def fp_majors(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, majors = get_majors(conn, cursor, order_data, info)
+    if majors is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": majors}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fp_universities(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, universities = get_universities(conn, cursor, order_data, info)
+    if universities is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": universities}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fp_cities(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, cities = get_cities(conn, cursor, order_data, info)
+    if cities is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": cities}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fp_provinces(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, provinces = get_provinces(conn, cursor, order_data, info)
+    if provinces is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": provinces}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fp_exam_types(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, exam_types = get_exam_types(conn, cursor, order_data, info)
+    if exam_types is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": exam_types}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fp_search_fields(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, fields, message = search_fields(conn, cursor, order_data, info)
+    if fields is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": fields}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": message}
+
+
+# Free Pick Functionality
+def fr_majors(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, majors = get_majors_fr(conn, cursor, order_data, info)
+    if majors is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": majors}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fr_provinces(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, provinces = get_provinces_fr(conn, cursor, order_data, info)
+    if provinces is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": provinces}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fr_universities(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, universities = get_universities_fr(conn, cursor, order_data, info)
+    if universities is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": universities}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def fr_search_fields(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, fields, message = search_fields_fr(conn, cursor, order_data, info)
+    if fields is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": fields}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": message}
+
+
+# Free Other Pick Functionality
+def frb_majors(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, majors = get_majors_frb(conn, cursor, order_data, info)
+    if majors is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": majors}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def frb_provinces(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, provinces = get_provinces_frb(conn, cursor, order_data, info)
+    if provinces is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": provinces}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def frb_universities(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    tracking_code, universities = get_universities_frb(conn, cursor, order_data, info)
+    if universities is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": universities}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def frb_search_fields(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    print(method_type)
+    tracking_code, fields, message = search_fields_frb(conn, cursor, order_data, info)
+    if fields is not None:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
+                "response": fields}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": message}
+
+
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"
 #     if info.get("role") == "ins":
@@ -271,34 +575,7 @@ def update_student_info(conn, cursor, order_data, info):
 #         conn.close()
 #         return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def finalize_student_info(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     token = update_stu_info(conn, cursor, order_data, info, 2)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"message": "اطلاعات شما با موفقیت ثبت‌نهایی شد."}}
-#
-#
 
-#
-#
-# # The users functionality
-# def student_info(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     token, dash_info, message = select_student_info(conn, cursor, info)
-#     if not token:
-#         return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                 "error": message}
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"data": dash_info}}
-#
-#
-# # Field Pick
 # def accept_check_user_info(conn, cursor, order_data, info):
 #     method_type = "SELECT"
 #     query = 'SELECT finalized FROM BBC.dbo.stu WHERE user_id = ?'
@@ -319,303 +596,8 @@ def update_student_info(conn, cursor, order_data, info):
 #     conn.close()
 #     return {"status": 200, "tracking_code": token, "method_type": method_type,
 #             "response": {"data": dash_info}}
-#
-#
-# def fp_majors(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, majors = get_majors(conn, cursor, order_data)
-#     if majors is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": majors}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fp_exam_types(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, exam_types = get_exam_types(conn, cursor, order_data)
-#     if exam_types is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": exam_types}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fp_universities(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, universities = get_universities(conn, cursor, order_data)
-#     if universities is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": universities}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fp_cities(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, cities = get_cities(conn, cursor, order_data)
-#     if cities is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": cities}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fp_provinces(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, provinces = get_provinces(conn, cursor, order_data)
-#     if provinces is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": provinces}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fp_search_fields(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     tracking_code, fields, message = search_fields(conn, cursor, order_data, info)
-#     if fields is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": fields}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": message}
-#
-#
-# # Free Pick
-# def fr_majors(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, majors = get_majors_fr(conn, cursor, order_data)
-#     if majors is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": majors}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fr_provinces(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, provinces = get_provinces_fr(conn, cursor, order_data)
-#     if provinces is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": provinces}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fr_universities(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, universities = get_universities_fr(conn, cursor, order_data)
-#     if universities is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": universities}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def fr_search_fields(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     tracking_code, fields, message = search_fields_fr(conn, cursor, order_data, info)
-#     if fields is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": fields}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": message}
-#
-#
-# # Free Other Pick
-# def frb_majors(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, majors = get_majors_frb(conn, cursor, order_data)
-#     if majors is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": majors}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def frb_provinces(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, provinces = get_provinces_frb(conn, cursor, order_data)
-#     if provinces is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": provinces}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def frb_universities(conn, cursor, order_data):
-#     method_type = "SELECT"
-#     tracking_code, universities = get_universities_frb(conn, cursor, order_data)
-#     if universities is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": universities}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-#
-#
-# def frb_search_fields(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     print(method_type)
-#     tracking_code, fields, message = search_fields_frb(conn, cursor, order_data, info)
-#     if fields is not None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#                 "response": fields}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": message}
-#
-#
-# # users list
-# def update_spgl_list(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     tracking_code, message = update_spgl(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": {"message": message}}
-#
-#
-# def update_spfr_list(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     tracking_code, message = update_spfr(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": {"message": message}}
-#
-#
-# def select_spfr_list(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     tracking_code, data = get_spfr(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": data}
-#
-#
-# def update_trfr_list(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     tracking_code, message = update_trfr(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": {"message": message}}
-#
-#
-# def select_trfr_list(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     tracking_code, data = get_trfr(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": data}
-#
-#
-# def update_spfrb_list(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     tracking_code, message = update_spfrb(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": {"message": message}}
-#
-#
-# def select_spfrb_list(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     tracking_code, data = get_spfrb(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": data}
-#
-#
-# def update_trfrb_list(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     tracking_code, message = update_trfrb(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": {"message": message}}
-#
-#
-# def select_trfrb_list(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     tracking_code, data = get_trfrb(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": tracking_code, "method_type": method_type,
-#             "response": data}
-#
-#
+
+
 # # Hoshmand Functionality
 # def get_hoshmand_info(conn, cursor, data, info):
 #     try:

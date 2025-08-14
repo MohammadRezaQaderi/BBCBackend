@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 import os
 
 from Helper.func_helper import db_connection
+from Users.Institute.institute import update_user_ins_pic
 from Users.Student.student import update_user_stu_pic
 from Users.users import *
 
@@ -148,8 +149,6 @@ async def update_api(request: Request):
             return update_user(conn, cursor, order_data["data"], info)
         elif action == "update_student_info":
             return update_student_info(conn, cursor, order_data["data"], info)
-        # elif action == "finalize_student_info":
-        #     return finalize_student_info(conn, cursor, order_data["data"], info)
         elif action == "update_password":
             return update_password(conn, cursor, order_data["data"], info)
         else:
@@ -182,6 +181,7 @@ async def update_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
+# todo here not checked and not refactor
 # @app.post("/bbc_api/select_request")
 # async def select_api(request: Request):
 #     method_type = "SELECT"
@@ -210,9 +210,27 @@ async def update_api(request: Request):
 #             return {"status": 405, "tracking_code": None, "method_type": None,
 #                     "error": "سرویس مورد نظر در دسترس نیست."}
 #     except KeyError as e:
+#         conn, cursor = await db_connection()
+#         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+#         values_log = (
+#             None, None, "bbc_api/select_request", "select_api",
+#             None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+#         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+#                                values=values_log)
+#         cursor.close()
+#         conn.close()
 #         return {"status": 401, "tracking_code": None, "method_type": method_type,
 #                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except:
+#     except Exception as e:
+#         conn, cursor = await db_connection()
+#         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+#         values_log = (
+#             None, None, "bbc_api/select_request", "select_api",
+#             None, str(e))
+#         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+#                                values=values_log)
+#         cursor.close()
+#         conn.close()
 #         return {"status": 500, "tracking_code": None, "method_type": None,
 #                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
@@ -243,123 +261,176 @@ async def delete_api(request: Request):
             return {"status": 405, "tracking_code": None, "method_type": None,
                     "error": "سرویس مورد نظر در دسترس نیست."}
     except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/delete_request", "delete_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
         return {"status": 401, "tracking_code": None, "method_type": method_type,
                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-    except:
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/delete_request", "delete_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
         return {"status": 500, "tracking_code": None, "method_type": None,
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-# @app.post("/fieldpick_api/update_request")
-# async def update_api(request: Request):
-#     method_type = "UPDATE"
-#     try:
-#         order_data = await request.json()
-#         conn, cursor = await db_connection()
-#         if "method_type" in order_data:
-#             method = order_data["method_type"]
-#             if method.upper() in ["SELECT", "INSERT", "DELETE"]:
-#                 return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                         "error": "شما دسترسی به این سرویس‌ را ندارید."}
-#         if "data" not in order_data.keys():
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": "اطلاعات از سمت شما ارسال نشده است."}
-#         action = order_data["method_type"]
-#         state, state_message, info = await check(conn, cursor, order_data["data"])
-#         if not state:
-#             return {"status": 404, "tracking_code": None, "method_type": "AUTH",
-#                     "error": state_message}
-#
-#         elif action == "update_spfr_list":
-#             return update_spfr_list(conn, cursor, order_data["data"], info)
-#         elif action == "update_trfr_list":
-#             return update_trfr_list(conn, cursor, order_data["data"], info)
-#
-#         elif action == "update_spfrb_list":
-#             return update_spfrb_list(conn, cursor, order_data["data"], info)
-#         elif action == "update_trfrb_list":
-#             return update_trfrb_list(conn, cursor, order_data["data"], info)
-#         else:
-#             print("update action >>>>>>>>>>>>>>>>>>>>", action)
-#             return {"status": 405, "tracking_code": None, "method_type": None,
-#                     "error": "سرویس مورد نظر در دسترس نیست."}
-#     except KeyError as e:
-#         return {"status": 401, "tracking_code": None, "method_type": method_type,
-#                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except:
-#         return {"status": 500, "tracking_code": None, "method_type": None,
-#                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
-#
-#
-# @app.post("/fieldpick_api/select_request")
-# async def select_api(request: Request):
-#     method_type = "SELECT"
-#     try:
-#         order_data = await request.json()
-#         conn, cursor = await db_connection()
-#         if "method_type" in order_data:
-#             method = order_data["method_type"]
-#             if method.upper() in ["UPDATE", "INSERT", "DELETE"]:
-#                 return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                         "error": "شما دسترسی به این سرویس‌ را ندارید."}
-#         if "data" not in order_data.keys():
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": "اطلاعات از سمت شما ارسال نشده است."}
-#         state, state_message, info = await check(conn, cursor, order_data["data"])
-#         if not state:
-#             return {"status": 404, "tracking_code": None, "method_type": "AUTH",
-#                     "error": state_message}
-#         action = order_data["method_type"]
-#         if action == "fp_majors":
-#             return fp_majors(conn, cursor, order_data["data"])
-#         elif action == "fp_universities":
-#             return fp_universities(conn, cursor, order_data["data"])
-#         elif action == "fp_cities":
-#             return fp_cities(conn, cursor, order_data["data"])
-#         elif action == "fp_provinces":
-#             return fp_provinces(conn, cursor, order_data["data"])
-#         elif action == "fp_exam_types":
-#             return fp_exam_types(conn, cursor, order_data["data"])
-#         elif action == "fp_search_fields":
-#             return fp_search_fields(conn, cursor, order_data["data"], info)
-#
-#         elif action == "fr_majors":
-#             return fr_majors(conn, cursor, order_data["data"])
-#         elif action == "fr_provinces":
-#             return fr_provinces(conn, cursor, order_data["data"])
-#         elif action == "fr_universities":
-#             return fr_universities(conn, cursor, order_data["data"])
-#         elif action == "fr_search_fields":
-#             return fr_search_fields(conn, cursor, order_data["data"], info)
-#
-#         elif action == "select_spfr_list":
-#             return select_spfr_list(conn, cursor, order_data["data"], info)
-#         elif action == "select_trfr_list":
-#             return select_trfr_list(conn, cursor, order_data["data"], info)
-#
-#         elif action == "frb_majors":
-#             return frb_majors(conn, cursor, order_data["data"])
-#         elif action == "frb_provinces":
-#             return frb_provinces(conn, cursor, order_data["data"])
-#         elif action == "frb_universities":
-#             return frb_universities(conn, cursor, order_data["data"])
-#         elif action == "frb_search_fields":
-#             return frb_search_fields(conn, cursor, order_data["data"], info)
-#
-#         elif action == "select_spfrb_list":
-#             return select_spfrb_list(conn, cursor, order_data["data"], info)
-#         elif action == "select_trfrb_list":
-#             return select_trfrb_list(conn, cursor, order_data["data"], info)
-#         else:
-#             print("select action >>>>>>>>>>>>>>>>>>>>", action)
-#             return {"status": 405, "tracking_code": None, "method_type": None,
-#                     "error": "سرویس مورد نظر در دسترس نیست."}
-#     except KeyError as e:
-#         return {"status": 401, "tracking_code": None, "method_type": method_type,
-#                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except:
-#         return {"status": 500, "tracking_code": None, "method_type": None,
-#                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
+@app.post("/fieldpick_api/update_request")
+async def update_api(request: Request):
+    method_type = "UPDATE"
+    try:
+        order_data = await request.json()
+        conn, cursor = await db_connection()
+        if "method_type" in order_data:
+            method = order_data["method_type"]
+            if method.upper() in ["SELECT", "INSERT", "DELETE"]:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": "شما دسترسی به این سرویس‌ را ندارید."}
+        if "data" not in order_data.keys():
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "اطلاعات از سمت شما ارسال نشده است."}
+        action = order_data["method_type"]
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        if action == "update_spfr_list":
+            return update_spfr_list(conn, cursor, order_data["data"], info)
+        elif action == "update_trfr_list":
+            return update_trfr_list(conn, cursor, order_data["data"], info)
+        elif action == "update_spfrb_list":
+            return update_spfrb_list(conn, cursor, order_data["data"], info)
+        elif action == "update_trfrb_list":
+            return update_trfrb_list(conn, cursor, order_data["data"], info)
+        else:
+            print("update action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
+    except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "fieldpick_api/update_request", "update_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 401, "tracking_code": None, "method_type": method_type,
+                "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "fieldpick_api/update_request", "update_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 500, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
+
+
+
+@app.post("/fieldpick_api/select_request")
+async def select_api(request: Request):
+    method_type = "SELECT"
+    try:
+        order_data = await request.json()
+        conn, cursor = await db_connection()
+        if "method_type" in order_data:
+            method = order_data["method_type"]
+            if method.upper() in ["UPDATE", "INSERT", "DELETE"]:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": "شما دسترسی به این سرویس‌ را ندارید."}
+        if "data" not in order_data.keys():
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "اطلاعات از سمت شما ارسال نشده است."}
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        action = order_data["method_type"]
+        if action == "fp_majors":
+            return fp_majors(conn, cursor, order_data["data"], info)
+        elif action == "fp_universities":
+            return fp_universities(conn, cursor, order_data["data"], info)
+        elif action == "fp_cities":
+            return fp_cities(conn, cursor, order_data["data"], info)
+        elif action == "fp_provinces":
+            return fp_provinces(conn, cursor, order_data["data"], info)
+        elif action == "fp_exam_types":
+            return fp_exam_types(conn, cursor, order_data["data"], info)
+        elif action == "fp_search_fields":
+            return fp_search_fields(conn, cursor, order_data["data"], info)
+
+        elif action == "fr_majors":
+            return fr_majors(conn, cursor, order_data["data"], info)
+        elif action == "fr_provinces":
+            return fr_provinces(conn, cursor, order_data["data"], info)
+        elif action == "fr_universities":
+            return fr_universities(conn, cursor, order_data["data"], info)
+        elif action == "fr_search_fields":
+            return fr_search_fields(conn, cursor, order_data["data"], info)
+
+        elif action == "select_spfr_list":
+            return select_spfr_list(conn, cursor, order_data["data"], info)
+        elif action == "select_trfr_list":
+            return select_trfr_list(conn, cursor, order_data["data"], info)
+
+        elif action == "frb_majors":
+            return frb_majors(conn, cursor, order_data["data"], info)
+        elif action == "frb_provinces":
+            return frb_provinces(conn, cursor, order_data["data"], info)
+        elif action == "frb_universities":
+            return frb_universities(conn, cursor, order_data["data"], info)
+        elif action == "frb_search_fields":
+            return frb_search_fields(conn, cursor, order_data["data"], info)
+
+        elif action == "select_spfrb_list":
+            return select_spfrb_list(conn, cursor, order_data["data"], info)
+        elif action == "select_trfrb_list":
+            return select_trfrb_list(conn, cursor, order_data["data"], info)
+        else:
+            print("select action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
+    except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "fieldpick_api/select_request", "select_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 401, "tracking_code": None, "method_type": method_type,
+                "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "fieldpick_api/select_request", "select_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 500, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 #
 #
 # @app.post("/hoshmand_api/update_request")
@@ -533,30 +604,60 @@ async def delete_api(request: Request):
 #                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-@app.post("/bbc_api/update_user_info_file")
-async def update_user_info_file(
+@app.post("/bbc_api/update_user_ins_file")
+async def update_user_ins_file(
         pic: UploadFile = Form(...),
-        first_name: str = Form(...),
-        last_name: str = Form(...),
+        name: str = Form(...),
         user_id: int = Form(...),
         last_pic: str = Form(...),
+        token: str = Form(...),
 ):
-    conn, cursor = await db_connection()
-    generate_random_name = str(uuid.uuid4())
-    new_file_name = generate_random_name + "." + pic.filename.split(".")[1]
-    pic.filename = new_file_name
-    # TODO make the log when file added
-    file_path = f"D:/WebSites/BBC/Media/UserPic/{pic.filename}"
-    last_path = f"D:/WebSites/BBC/Media/UserPic/{last_pic}"
-    if os.path.exists(last_path):
-        os.remove(last_path)
-    else:
-        print("The file does not exist")
-    data = {"first_name": first_name, "last_name": last_name, "user_id": user_id, "pic": pic.filename}
-    with open(file_path, "wb") as file_object:
-        file_object.write(pic.file.read())
-    res_request = update_user_stu_pic(conn, cursor, data)
-    return res_request
+    try:
+        conn, cursor = await db_connection()
+        order_data = {"token": token}
+        state, state_message, info = await check(conn, cursor, order_data)
+        if not state:
+            cursor.close()
+            conn.close()
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        generate_random_name = str(uuid.uuid4())
+        new_file_name = generate_random_name + "." + pic.filename.split(".")[1]
+        pic.filename = new_file_name
+        file_path = f"D:/WebSites/BBC/Media/UserPic/{pic.filename}"
+        last_path = f"D:/WebSites/BBC/Media/UserPic/{last_pic}"
+        data = {"name": name, "pic": pic.filename}
+        if info.get("role") == "ins":
+            token, data, message = update_user_ins_pic(conn, cursor, data, info)
+        else:
+            cursor.close()
+            conn.close()
+            return {"status": 200, "tracking_code": None, "method_type": "AUTH",
+                    "error": "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."}
+        if os.path.exists(last_path):
+            os.remove(last_path)
+        else:
+            print("The file does not exist")
+        with open(file_path, "wb") as file_object:
+            file_object.write(pic.file.read())
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": "UPDATE",
+                    "response": {"data": data, "message": message}}
+        else:
+            return {"status": 200, "tracking_code": None, "method_type": "UPDATE",
+                    "error": "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/update_user_ins_file", "update_user_ins_file",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": "UPDATE",
+                "error": "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."}
 
 
 @app.get("/bbc_api/get_user_pic/{filename}")

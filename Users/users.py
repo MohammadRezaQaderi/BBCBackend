@@ -11,6 +11,7 @@ from Users.FieldPick.field_pick import update_spfr, update_trfr, update_spfrb, u
     get_universities_fr, search_fields_fr, get_spfr, get_trfr, get_majors_frb, get_provinces_frb, get_universities_frb, \
     search_fields_frb, get_spfrb, get_trfrb
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password
+from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info
 
 uni_info = ["دانشگاه‌های شاخص سراسر کشور", "دانشگاه‌های برتر استان(های) بومی", "سایر دانشگاه‌های استان(های) بومی",
@@ -500,6 +501,38 @@ def frb_search_fields(conn, cursor, order_data, info):
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": message}
 
+
+# Quiz Functionality
+def update_quiz_answer(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    token, message = submit_quiz_answer(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"message": message}}
+
+
+def select_quiz_table_info(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, data = select_stu_quiz_table_info(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"data": data}}
+
+
+def select_quiz_info(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, data, quiz_answers = select_stu_quiz_info(conn, cursor, order_data, info)
+    if not data:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "آزمون مورد نظر شما در دسترس شما نیست."}
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"data": data, "quizAnswers": quiz_answers}}
 
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"
@@ -1941,34 +1974,3 @@ def frb_search_fields(conn, cursor, order_data, info):
 #     }
 #
 #
-# # Quiz Functionality
-# def update_quiz_answer(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     token, message = submit_quiz_answer(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"message": message}}
-#
-#
-# def select_quiz_table_info(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     token, data = select_stu_quiz_table_info(conn, cursor, order_data, info)
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"data": data}}
-#
-#
-# def select_quiz_info(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     token, data, quiz_answers = select_stu_quiz_info(conn, cursor, order_data, info)
-#     if not data:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "آزمون مورد نظر شما در دسترس شما نیست."}
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"data": data, "quizAnswers": quiz_answers}}

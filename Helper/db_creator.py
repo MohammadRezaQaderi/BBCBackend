@@ -453,13 +453,16 @@ def check_data_base(conn, cursor, tables):
             conn.commit()
             print(f"The {table} table has been created.")
 
-        elif table == "quiz_log":
+        elif table == "quiz_logs":
             cursor.execute("""
-                CREATE TABLE quiz_log (
+                CREATE TABLE quiz_logs (
                     id INT IDENTITY(1, 1) PRIMARY KEY,
                     user_id INT,
-                    q_id INT,
                     phone NVARCHAR(12),
+                    end_point NCHAR(100),
+                    func_name NCHAR(100),
+                    data NVARCHAR(MAX),         
+                    error_p NVARCHAR(MAX),         
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE()
                 )
@@ -556,5 +559,5 @@ check_data_base(conn_db, cursor_db,
                 ['users', 'ins', 'con', 'stu', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
                  'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
-                 'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_log', 'hedayat_fields',
+                 'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
                  'redis_log', 'error_log', 'api_logs'])

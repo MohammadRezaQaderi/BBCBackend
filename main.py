@@ -343,7 +343,6 @@ async def update_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-
 @app.post("/fieldpick_api/select_request")
 async def select_api(request: Request):
     method_type = "SELECT"
@@ -431,7 +430,112 @@ async def select_api(request: Request):
         conn.close()
         return {"status": 500, "tracking_code": None, "method_type": None,
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
-#
+
+
+@app.post("/quiz_api/update_request")
+async def update_api(request: Request):
+    method_type = "UPDATE"
+    try:
+        order_data = await request.json()
+        conn, cursor = await db_connection()
+        if "method_type" in order_data:
+            method = order_data["method_type"]
+            if method.upper() in ["SELECT", "INSERT", "DELETE"]:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": "شما دسترسی به این سرویس‌ را ندارید."}
+        if "data" not in order_data.keys():
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "اطلاعات از سمت شما ارسال نشده است."}
+        action = order_data["method_type"]
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        if action == "update_quiz_answer":
+            return update_quiz_answer(conn, cursor, order_data["data"], info)
+        else:
+            print("update action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
+    except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "quiz_api/update_request", "update_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 401, "tracking_code": None, "method_type": method_type,
+                "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "quiz_api/update_request", "update_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 500, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
+
+
+@app.post("/quiz_api/select_request")
+async def select_api(request: Request):
+    method_type = "SELECT"
+    try:
+        order_data = await request.json()
+        conn, cursor = await db_connection()
+        if "method_type" in order_data:
+            method = order_data["method_type"]
+            if method.upper() in ["UPDATE", "INSERT", "DELETE"]:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": "شما دسترسی به این سرویس‌ را ندارید."}
+        if "data" not in order_data.keys():
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "اطلاعات از سمت شما ارسال نشده است."}
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        action = order_data["method_type"]
+        if action == "select_quiz_table_info":
+            return select_quiz_table_info(conn, cursor, order_data["data"], info)
+        elif action == "select_quiz_info":
+            return select_quiz_info(conn, cursor, order_data["data"], info)
+        else:
+            print("select action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
+    except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "quiz_api/select_request", "select_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 401, "tracking_code": None, "method_type": method_type,
+                "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "quiz_api/select_request", "select_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 500, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
+
+
 #
 # @app.post("/hoshmand_api/update_request")
 # async def update_api(request: Request):
@@ -536,72 +640,6 @@ async def select_api(request: Request):
 #                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 #
 #
-# @app.post("/quiz_api/update_request")
-# async def update_api(request: Request):
-#     method_type = "UPDATE"
-#     try:
-#         order_data = await request.json()
-#         conn, cursor = await db_connection()
-#         if "method_type" in order_data:
-#             method = order_data["method_type"]
-#             if method.upper() in ["SELECT", "INSERT", "DELETE"]:
-#                 return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                         "error": "شما دسترسی به این سرویس‌ را ندارید."}
-#         if "data" not in order_data.keys():
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": "اطلاعات از سمت شما ارسال نشده است."}
-#         action = order_data["method_type"]
-#         state, state_message, info = await check(conn, cursor, order_data["data"])
-#         if not state:
-#             return {"status": 404, "tracking_code": None, "method_type": "AUTH",
-#                     "error": state_message}
-#         if action == "update_quiz_answer":
-#             return update_quiz_answer(conn, cursor, order_data["data"], info)
-#         else:
-#             print("update action >>>>>>>>>>>>>>>>>>>>", action)
-#             return {"status": 405, "tracking_code": None, "method_type": None,
-#                     "error": "سرویس مورد نظر در دسترس نیست."}
-#     except KeyError as e:
-#         return {"status": 401, "tracking_code": None, "method_type": method_type,
-#                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except:
-#         return {"status": 500, "tracking_code": None, "method_type": None,
-#                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
-#
-#
-# @app.post("/quiz_api/select_request")
-# async def select_api(request: Request):
-#     method_type = "SELECT"
-#     try:
-#         order_data = await request.json()
-#         conn, cursor = await db_connection()
-#         if "method_type" in order_data:
-#             method = order_data["method_type"]
-#             if method.upper() in ["UPDATE", "INSERT", "DELETE"]:
-#                 return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                         "error": "شما دسترسی به این سرویس‌ را ندارید."}
-#         if "data" not in order_data.keys():
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": "اطلاعات از سمت شما ارسال نشده است."}
-#         state, state_message, info = await check(conn, cursor, order_data["data"])
-#         if not state:
-#             return {"status": 404, "tracking_code": None, "method_type": "AUTH",
-#                     "error": state_message}
-#         action = order_data["method_type"]
-#         if action == "select_quiz_table_info":
-#             return select_quiz_table_info(conn, cursor, order_data["data"], info)
-#         elif action == "select_quiz_info":
-#             return select_quiz_info(conn, cursor, order_data["data"], info)
-#         else:
-#             print("select action >>>>>>>>>>>>>>>>>>>>", action)
-#             return {"status": 405, "tracking_code": None, "method_type": None,
-#                     "error": "سرویس مورد نظر در دسترس نیست."}
-#     except KeyError as e:
-#         return {"status": 401, "tracking_code": None, "method_type": method_type,
-#                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except:
-#         return {"status": 500, "tracking_code": None, "method_type": None,
-#                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
 @app.post("/bbc_api/update_user_ins_file")

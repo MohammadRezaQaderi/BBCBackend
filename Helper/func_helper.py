@@ -94,3 +94,12 @@ def generate_discount_code(length=8, prefix="", suffix=""):
     discount_code = f"{prefix}{random_part}{suffix}"
 
     return discount_code
+
+
+def delete_unneeded_table(conn, cursor, tables, id):
+    for table in tables:
+        db_helper.delete_record(
+            conn, cursor, table,
+            ["user_id"],
+            [str(id)]
+        )

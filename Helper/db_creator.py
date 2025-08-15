@@ -178,25 +178,6 @@ def check_data_base(conn, cursor, tables):
             conn.commit()
             print(f"The {table} table has been created.")
 
-        elif table == "pickfield_logs":
-            cursor.execute("""
-                CREATE TABLE pickfield_logs (
-                    id INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
-                    user_id INT,
-                    phone NVARCHAR(12),
-                    sp NVARCHAR(MAX),
-                    sp_input NVARCHAR(MAX),
-                    data NVARCHAR(MAX),         
-                    error_p NVARCHAR(MAX),         
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL,
-                    created_time DATETIME DEFAULT GETDATE(),
-                    edited_time DATETIME DEFAULT GETDATE(),
-                )
-            """)
-            conn.commit()
-            print(f"The {table} table has been created.")
-
         elif table == "tokens":
             cursor.execute("""
                 CREATE TABLE tokens (
@@ -206,25 +187,6 @@ def check_data_base(conn, cursor, tables):
                     phone NVARCHAR(12) NOT NULL,
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE()
-                )
-            """)
-            conn.commit()
-            print(f"The {table} table has been created.")
-
-        elif table == "hoshmand_logs":
-            cursor.execute("""
-                CREATE TABLE hoshmand_logs (
-                    id INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    phone NVARCHAR(12) NOT NULL,
-                    sp NVARCHAR(MAX),
-                    sp_input NVARCHAR(MAX),
-                    data NVARCHAR(MAX),
-                    ins_id INT,
-                    con_id INT, 
-                    error_p NVARCHAR(MAX),         
-                    created_time DATETIME DEFAULT GETDATE(),
-                    edited_time DATETIME DEFAULT GETDATE(),
                 )
             """)
             conn.commit()
@@ -523,6 +485,64 @@ def check_data_base(conn, cursor, tables):
                     func_name NCHAR(100),
                     data NVARCHAR(MAX),         
                     error_p NVARCHAR(MAX),         
+                    created_time DATETIME DEFAULT GETDATE(),
+                    edited_time DATETIME DEFAULT GETDATE(),
+                )
+            """)
+            conn.commit()
+            print(f"The {table} table has been created.")
+
+        elif table == "hoshmand_logs":
+            cursor.execute("""
+                CREATE TABLE hoshmand_logs (
+                    id INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    phone NVARCHAR(12) NOT NULL,
+                    end_point NCHAR(100),
+                    func_name NCHAR(100),
+                    data NVARCHAR(MAX),
+                    ins_id INT,
+                    con_id INT, 
+                    error_p NVARCHAR(MAX),         
+                    created_time DATETIME DEFAULT GETDATE(),
+                    edited_time DATETIME DEFAULT GETDATE(),
+                )
+            """)
+            conn.commit()
+            print(f"The {table} table has been created.")
+
+
+        elif table == "hoshmand_sp_logs":
+            cursor.execute("""
+                CREATE TABLE hoshmand_logs (
+                    id INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    phone NVARCHAR(12) NOT NULL,
+                    sp NVARCHAR(MAX),
+                    sp_input NVARCHAR(MAX),
+                    data NVARCHAR(MAX),
+                    ins_id INT,
+                    con_id INT, 
+                    error_p NVARCHAR(MAX),         
+                    created_time DATETIME DEFAULT GETDATE(),
+                    edited_time DATETIME DEFAULT GETDATE(),
+                )
+            """)
+            conn.commit()
+            print(f"The {table} table has been created.")
+
+        elif table == "pickfield_logs":
+            cursor.execute("""
+                CREATE TABLE pickfield_logs (
+                    id INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+                    user_id INT,
+                    phone NVARCHAR(12),
+                    sp NVARCHAR(MAX),
+                    sp_input NVARCHAR(MAX),
+                    data NVARCHAR(MAX),         
+                    error_p NVARCHAR(MAX),         
+                    ins_id INT NOT NULL,
+                    con_id INT NOT NULL,
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )

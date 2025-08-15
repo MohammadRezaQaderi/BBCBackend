@@ -536,55 +536,73 @@ async def select_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-#
-# @app.post("/hoshmand_api/update_request")
-# async def update_api(request: Request):
-#     method_type = "UPDATE"
-#     try:
-#         order_data = await request.json()
-#         conn, cursor = await db_connection()
-#         if "method_type" in order_data:
-#             method = order_data["method_type"]
-#             if method.upper() in ["SELECT", "INSERT", "DELETE"]:
-#                 return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                         "error": "شما دسترسی به این سرویس‌ را ندارید."}
-#         if "data" not in order_data.keys():
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": "اطلاعات از سمت شما ارسال نشده است."}
-#         action = order_data["method_type"]
-#         state, state_message, info = await check(conn, cursor, order_data["data"])
-#         if not state:
-#             return {"status": 404, "tracking_code": None, "method_type": "AUTH",
-#                     "error": state_message}
-#         if action == "update_hoshmand_info":
-#             return update_hoshmand_info(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_questions":
-#             return update_hoshmand_questions(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_examtype":
-#             return update_hoshmand_examtype(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_major":
-#             return update_hoshmand_major(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_province":
-#             return update_hoshmand_province(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_tables":
-#             return update_hoshmand_tables(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_chains":
-#             return update_hoshmand_chains(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_fields":
-#             return update_hoshmand_fields(conn, cursor, order_data["data"], info)
-#         elif action == "update_hoshmand_sp_list":
-#             return update_hoshmand_sp_list(conn, cursor, order_data["data"], info)
-#         else:
-#             print("update action >>>>>>>>>>>>>>>>>>>>", action)
-#             return {"status": 405, "tracking_code": None, "method_type": None,
-#                     "error": "سرویس مورد نظر در دسترس نیست."}
-#     except KeyError as e:
-#         return {"status": 401, "tracking_code": None, "method_type": method_type,
-#                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except:
-#         return {"status": 500, "tracking_code": None, "method_type": None,
-#                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
-#
+@app.post("/hoshmand_api/update_request")
+async def update_api(request: Request):
+    method_type = "UPDATE"
+    try:
+        order_data = await request.json()
+        conn, cursor = await db_connection()
+        if "method_type" in order_data:
+            method = order_data["method_type"]
+            if method.upper() in ["SELECT", "INSERT", "DELETE"]:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": "شما دسترسی به این سرویس‌ را ندارید."}
+        if "data" not in order_data.keys():
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "اطلاعات از سمت شما ارسال نشده است."}
+        action = order_data["method_type"]
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        if action == "update_hoshmand_info":
+            return update_hoshmand_info(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_questions":
+            return update_hoshmand_questions(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_examtype":
+            return update_hoshmand_examtype(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_major":
+            return update_hoshmand_major(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_province":
+            return update_hoshmand_province(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_tables":
+            return update_hoshmand_tables(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_chains":
+            return update_hoshmand_chains(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_fields":
+            return update_hoshmand_fields(conn, cursor, order_data["data"], info)
+        elif action == "update_hoshmand_sp_list":
+            return update_hoshmand_sp_list(conn, cursor, order_data["data"], info)
+        else:
+            print("update action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
+    except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "hoshmand_api/update_request", "update_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 401, "tracking_code": None, "method_type": method_type,
+                "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "hoshmand_api/update_request", "update_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 500, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
+
+
 #
 # @app.post("/hoshmand_api/select_request")
 # async def select_api(request: Request):

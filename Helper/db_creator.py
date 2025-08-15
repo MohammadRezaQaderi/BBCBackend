@@ -534,7 +534,7 @@ def check_data_base(conn, cursor, tables):
 
         elif table == "hoshmand_sp_logs":
             cursor.execute("""
-                CREATE TABLE hoshmand_logs (
+                CREATE TABLE hoshmand_sp_logs (
                     id INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
                     user_id INT NOT NULL,
                     phone NVARCHAR(12) NOT NULL,

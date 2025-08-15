@@ -4,7 +4,6 @@ import os
 
 from Helper.func_helper import db_connection
 from Users.Institute.institute import update_user_ins_pic
-from Users.Student.student import update_user_stu_pic
 from Users.users import *
 
 app = FastAPI()

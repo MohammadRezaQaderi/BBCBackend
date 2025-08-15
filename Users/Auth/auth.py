@@ -69,7 +69,7 @@ def check_signin(conn, cursor, data):
             token, info = select_con_info(conn=conn, cursor=cursor, user_id=res.user_id)
         elif res.role == "stu":
             token, info = select_student_info(conn=conn, cursor=cursor, user_id=res.user_id)
-        return token_user, info
+        return token_user, "", info
     except Exception as e:
         print(">>>>>> auth check signin error", e)
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'

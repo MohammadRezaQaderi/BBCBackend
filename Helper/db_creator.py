@@ -596,7 +596,7 @@ cursor_db = conn_db.cursor()
 
 # drop_all_tables(conn_db, cursor_db, [])
 check_data_base(conn_db, cursor_db,
-                ['users', 'ins', 'con', 'stu', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
+                ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
                  'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
                  'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',

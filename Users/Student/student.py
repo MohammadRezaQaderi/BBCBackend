@@ -170,14 +170,14 @@ def update_stu_info(conn, cursor, order_data, info, finalized):
 #
 #
 # def select_student_login(conn, cursor, user_id):
-#     query = 'SELECT stu_id, first_name, last_name, sex, city, sch_name, birth_date, logo, lock FROM BBC.dbo.stu WHERE user_id = ?'
+#     query = 'SELECT stu_id, first_name, last_name, sex, city, sch_name, birth_date, logo, lock FROM stu WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
 #     token = str(uuid.uuid4())
 #     return token, res[0], res[1], res[2], res[3], res[4], res[6], res[7], res[5], res[8]
 #
 #
 # def select_student_fast_info(conn, cursor, info):
-#     query = 'SELECT stu_id, first_name, last_name, sex, city, birth_date, field, quota, full_number, rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar, full_number_honar, rank_all_honar, lock, finalized FROM BBC.dbo.stu WHERE user_id = ?'
+#     query = 'SELECT stu_id, first_name, last_name, sex, city, birth_date, field, quota, full_number, rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar, full_number_honar, rank_all_honar, lock, finalized FROM stu WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     token = str(uuid.uuid4())
 #     if not res:
@@ -207,12 +207,12 @@ def update_stu_info(conn, cursor, order_data, info, finalized):
 #         "finalized": res[19]
 #     }
 #
-#     query_sp = 'SELECT special_list FROM BBC.dbo.sp_list WHERE user_id = ?'
+#     query_sp = 'SELECT special_list FROM sp_list WHERE user_id = ?'
 #     res_sp = db_helper.search_table(conn=conn, cursor=cursor, query=query_sp, field=info["user_id"])
 #     sp = []
 #     if res_sp:
 #         sp = json.loads(res_sp[0])
-#     query_pick = 'SELECT pick_list FROM BBC.dbo.pick_list WHERE user_id = ?'
+#     query_pick = 'SELECT pick_list FROM pick_list WHERE user_id = ?'
 #     res_pick = db_helper.search_table(conn=conn, cursor=cursor, query=query_pick, field=info["user_id"])
 #     pick = []
 #     if res_pick:

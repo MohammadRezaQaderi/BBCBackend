@@ -511,7 +511,6 @@ def check_data_base(conn, cursor, tables):
             conn.commit()
             print(f"The {table} table has been created.")
 
-
         elif table == "hoshmand_sp_logs":
             cursor.execute("""
                 CREATE TABLE hoshmand_logs (
@@ -580,4 +579,4 @@ check_data_base(conn_db, cursor_db,
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
                  'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
                  'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
-                 'redis_log', 'error_log', 'api_logs'])
+                 'redis_log', 'error_log', 'api_logs', 'hoshmand_sp_logs'])

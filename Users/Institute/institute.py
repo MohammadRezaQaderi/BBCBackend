@@ -166,7 +166,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
         return None, None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
 
 # def select_ins_dashboard(conn, cursor, order_data):
-#     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM BBC.dbo.capacity WHERE user_id = ?'
+#     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["user_id"])
 #     token = str(uuid.uuid4())
 #     cons_info = {"GLU": res[0], "GLA": res[1], "FRU": res[2], "FRA": res[3], "AGU": res[4], "AGA": res[5],
@@ -178,15 +178,15 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #     user_id = order_data["user_id"]
 #
 #     queries = {
-#         'capacity': 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM BBC.dbo.capacity WHERE user_id = ?',
-#         'hCon_count': 'SELECT count(*) FROM BBC.dbo.hCon WHERE ins_id = ?',
-#         'con_count': 'SELECT count(*) FROM BBC.dbo.con WHERE ins_id = ?',
-#         'stu_count': 'SELECT count(*) FROM BBC.dbo.stu WHERE ins_id = ?',
-#         'hcon_finalized': 'SELECT count(*) FROM BBC.dbo.stu WHERE ins_id = ? and hCon_finalized = 1',
-#         'con_finalized': 'SELECT count(*) FROM BBC.dbo.stu WHERE ins_id = ? and con_finalized = 1',
-#         'finish_quiz': 'SELECT count(*) FROM BBC.dbo.quiz_answer WHERE ins_id = ? and quiz_id = 7 and state = 2',
-#         'started_quiz': 'SELECT count(distinct (user_id)) FROM BBC.dbo.quiz_answer WHERE ins_id = ?',
-#         'all_can_quiz': 'SELECT count(*) FROM BBC.dbo.stu WHERE ins_id = ? and ag_access = 1'
+#         'capacity': 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?',
+#         'hCon_count': 'SELECT count(*) FROM hCon WHERE ins_id = ?',
+#         'con_count': 'SELECT count(*) FROM con WHERE ins_id = ?',
+#         'stu_count': 'SELECT count(*) FROM stu WHERE ins_id = ?',
+#         'hcon_finalized': 'SELECT count(*) FROM stu WHERE ins_id = ? and hCon_finalized = 1',
+#         'con_finalized': 'SELECT count(*) FROM stu WHERE ins_id = ? and con_finalized = 1',
+#         'finish_quiz': 'SELECT count(*) FROM quiz_answer WHERE ins_id = ? and quiz_id = 7 and state = 2',
+#         'started_quiz': 'SELECT count(distinct (user_id)) FROM quiz_answer WHERE ins_id = ?',
+#         'all_can_quiz': 'SELECT count(*) FROM stu WHERE ins_id = ? and ag_access = 1'
 #     }
 #
 #     results = {}
@@ -217,7 +217,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 #
 # def select_ins_consultant(conn, cursor, order_data, info):
-#     query = 'SELECT user_id, phone, first_name, last_name, sex, password FROM BBC.dbo.hCon WHERE ins_id = ? order by created_time desc'
+#     query = 'SELECT user_id, phone, first_name, last_name, sex, password FROM hCon WHERE ins_id = ? order by created_time desc'
 #     res_hCon = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     if len(res_hCon) == 0:
 #         token = str(uuid.uuid4())
@@ -227,7 +227,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #     for hCon in res_hCon:
 #         h = {"first_name": hCon[2], "last_name": hCon[3], "user_id": hCon[0], "phone": hCon[1],
 #              "sex": hCon[4], "password": hCon[5]}
-#         query = 'SELECT user_id, phone, first_name, last_name, sex, password FROM BBC.dbo.con WHERE hCon_id = ? order by created_time desc'
+#         query = 'SELECT user_id, phone, first_name, last_name, sex, password FROM con WHERE hCon_id = ? order by created_time desc'
 #         res_con = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=hCon[0])
 #         hcon_name = hCon[2] + " " + hCon[3]
 #         if len(res_con) == 0:
@@ -246,7 +246,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #     query = '''
 #         SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
 #                gl_access, fr_access, ag_access, finalized, con_id, glf_access, gl_limit, glf_limit, fr_limit
-#         FROM BBC.dbo.stu
+#         FROM stu
 #         WHERE ins_id = ?
 #         ORDER BY created_time DESC
 #     '''
@@ -256,7 +256,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #         token = str(uuid.uuid4())
 #         return token, stu_data
 #     for stu in res_stu:
-#         query = 'SELECT first_name, last_name FROM BBC.dbo.con WHERE user_id = ?'
+#         query = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
 #         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[12],))
 #         con_name = ""
 #         if res_con and len(res_con) >= 2:
@@ -291,7 +291,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #         SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number,
 #                rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
 #                full_number_honar, rank_all_honar, gl_access, fr_access, ag_access, finalized, ins_id, gl_limit, glf_limit, fr_limit, glf_access
-#         FROM BBC.dbo.stu
+#         FROM stu
 #         WHERE user_id = ?
 #         ORDER BY created_time DESC
 #     '''
@@ -337,7 +337,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 #
 # def update_ins_stu(conn, cursor, order_data, info):
-#     query = 'SELECT ins_id, finalized FROM BBC.dbo.stu WHERE user_id = ?'
+#     query = 'SELECT ins_id, finalized FROM stu WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
 #     if res[0] == info["user_id"]:
 #         if res[1] == 0:
@@ -366,24 +366,24 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 # def select_ins_student_pf(conn, cursor, order_data, info):
 #     if order_data["kind"] == 0:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM BBC.dbo.stu WHERE ins_id = ? order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM stu WHERE ins_id = ? order by created_time desc'
 #     elif order_data["kind"] == 1:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM BBC.dbo.stu WHERE ins_id = ? and gl_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM stu WHERE ins_id = ? and gl_access = 1 order by created_time desc'
 #     elif order_data["kind"] == 2:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM BBC.dbo.stu WHERE ins_id = ? and fr_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM stu WHERE ins_id = ? and fr_access = 1 order by created_time desc'
 #     elif order_data["kind"] == 3:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM BBC.dbo.stu WHERE ins_id = ? and glf_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM stu WHERE ins_id = ? and glf_access = 1 order by created_time desc'
 #     else:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM BBC.dbo.stu WHERE ins_id = ? and ag_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, hCon_finalized, con_finalized, field, hCon_id, con_id, glf_access FROM stu WHERE ins_id = ? and ag_access = 1 order by created_time desc'
 #     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     stu_data = []
 #     if len(res_stu) == 0:
 #         token = str(uuid.uuid4())
 #         return token, stu_data
 #     for stu in res_stu:
-#         query = 'SELECT first_name, last_name FROM BBC.dbo.hCon WHERE user_id = ?'
+#         query = 'SELECT first_name, last_name FROM hCon WHERE user_id = ?'
 #         res_hcon = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[10],))
-#         query = 'SELECT first_name, last_name FROM BBC.dbo.con WHERE user_id = ?'
+#         query = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
 #         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[11],))
 #         con_name = ""
 #         if res_con and len(res_con) >= 2:
@@ -400,16 +400,16 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 #
 # def select_ins_report_pf(conn, cursor, order_data, info):
-#     query = 'SELECT user_id, phone, first_name, last_name, field, hCon_id, con_id, ag_pdf, ag_pf FROM BBC.dbo.stu WHERE ins_id = ? and ag_access = 1 order by created_time desc'
+#     query = 'SELECT user_id, phone, first_name, last_name, field, hCon_id, con_id, ag_pdf, ag_pf FROM stu WHERE ins_id = ? and ag_access = 1 order by created_time desc'
 #     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     stu_data = []
 #     if len(res_stu) == 0:
 #         token = str(uuid.uuid4())
 #         return token, stu_data
 #     for stu in res_stu:
-#         query = 'SELECT first_name, last_name FROM BBC.dbo.hCon WHERE user_id = ?'
+#         query = 'SELECT first_name, last_name FROM hCon WHERE user_id = ?'
 #         res_hcon = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[5],))
-#         query = 'SELECT first_name, last_name FROM BBC.dbo.con WHERE user_id = ?'
+#         query = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
 #         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[6],))
 #         con_name = ""
 #         if res_con and len(res_con) >= 2:
@@ -457,7 +457,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #               datetime.now().strftime("%Y-%m-%d %H:%M:%S"),)
 #     res_add_stu = db_helper.insert_value(conn=conn, cursor=cursor, table_name="stu", fields=field,
 #                                          values=values)
-#     query_cap = 'SELECT * FROM BBC.dbo.capacity WHERE user_id = ?'
+#     query_cap = 'SELECT * FROM capacity WHERE user_id = ?'
 #     res_cap = db_helper.search_table(conn=conn, cursor=cursor, query=query_cap, field=order_data["user_id"])
 #     GLA = int(res_cap[4])
 #     GLU = int(res_cap[3])
@@ -489,7 +489,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 
 # def update_ins_stu_access(conn, cursor, order_data, info):
 #     try:
-#         query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM BBC.dbo.capacity WHERE user_id = ?'
+#         query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
 #         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
 #
 #         if not res:
@@ -580,7 +580,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 
 #
 # def select_ins_cons_stu(conn, cursor, order_data, info):
-#     query = 'SELECT user_id, first_name, last_name FROM BBC.dbo.con WHERE ins_id = ? order by created_time desc'
+#     query = 'SELECT user_id, first_name, last_name FROM con WHERE ins_id = ? order by created_time desc'
 #     res_con = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     con_data = []
 #     if len(res_con) == 0:
@@ -594,7 +594,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 #
 # def update_ins_stu_finilize(conn, cursor, order_data):
-#     query = 'SELECT * FROM BBC.dbo.stu WHERE national_id = ?'
+#     query = 'SELECT * FROM stu WHERE national_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["national_id"])
 #     db_helper.update_record(conn, cursor, 'stu',
 #                             ['first_name', 'last_name', 'sex', 'birth_date', 'city',
@@ -614,7 +614,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 #
 # def update_ins_stu_con(conn, cursor, order_data, info):
-#     query = 'SELECT hCon_id FROM BBC.dbo.con WHERE user_id = ?'
+#     query = 'SELECT hCon_id FROM con WHERE user_id = ?'
 #     res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["con_id"])
 #     if res_con:
 #         row_count = db_helper.update_record(
@@ -632,7 +632,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #
 # def insert_ins_stu_speed(conn, cursor, order_data):
 #     if order_data["kind"] == "major":
-#         query = 'SELECT * FROM BBC.dbo.speed WHERE user_id = ?'
+#         query = 'SELECT * FROM speed WHERE user_id = ?'
 #         res_stu_speed = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
 #         if res_stu_speed is not None:
 #             query_update = "update speed set major_list = '" + str(order_data["major_list"]) + "',editor_id = '" + str(
@@ -679,7 +679,7 @@ def update_user_ins_pic(conn, cursor, order_data, info):
 #     FR = order_data["FR"]
 #     AG = order_data["AG"]
 #     total_value = order_data["total_value"]
-#     query = "SELECT * FROM BBC.dbo.orders WHERE phone = '" + str(phone) + "' and order_status = 'pending'"
+#     query = "SELECT * FROM orders WHERE phone = '" + str(phone) + "' and order_status = 'pending'"
 #     response = cursor.execute(query)
 #     row = response.fetchone()
 #     conn.commit()

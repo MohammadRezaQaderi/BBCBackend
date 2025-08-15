@@ -29,12 +29,12 @@ major_info = ["رشته‌های اولویت ۱", "رشته‌های اولوی
 
 def check_user_request(conn, cursor, order_data, info):
     if info.get("role") == "ins":
-        query = 'SELECT ins_id FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT ins_id FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
         if res.ins_id != info.get("user_id"):
             return False
     elif info.get("role") == "con":
-        query = 'SELECT con_id FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT con_id FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
         if res.con_id != info.get("user_id"):
             return False
@@ -931,7 +931,7 @@ def select_hoshmand_list(conn, cursor, order_data, info):
 
 # def accept_check_user_info(conn, cursor, order_data, info):
 #     method_type = "SELECT"
-#     query = 'SELECT finalized FROM BBC.dbo.stu WHERE user_id = ?'
+#     query = 'SELECT finalized FROM stu WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
 #     if res is None:
 #         cursor.close()

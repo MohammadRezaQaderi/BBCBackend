@@ -116,9 +116,9 @@ def update_con_password(conn, cursor, order_data, info):
         return None, "مشکلی در تغییر اطلاعات پیش آمده"
 
 # def select_con_dashboard(conn, cursor, order_data, info):
-#     query = 'SELECT ins_id FROM BBC.dbo.con WHERE user_id = ?'
+#     query = 'SELECT ins_id FROM con WHERE user_id = ?'
 #     res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-#     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM BBC.dbo.capacity WHERE user_id = ?'
+#     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res_con[0])
 #     token = str(uuid.uuid4())
 #     cons_info = {"GLU": res[0], "GLA": res[1], "FRU": res[2], "FRA": res[3], "AGU": res[4], "AGA": res[5],
@@ -132,7 +132,7 @@ def update_con_password(conn, cursor, order_data, info):
 #     query = '''
 #             SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
 #                    gl_access, fr_access, ag_access, finalized, glf_access
-#             FROM BBC.dbo.stu
+#             FROM stu
 #             WHERE con_id = ?
 #             ORDER BY created_time DESC
 #         '''
@@ -166,7 +166,7 @@ def update_con_password(conn, cursor, order_data, info):
 #             SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number,
 #                    rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
 #                    full_number_honar, rank_all_honar, gl_access, fr_access, ag_access, finalized, con_id, gl_limit, glf_limit, fr_limit, glf_access
-#             FROM BBC.dbo.stu
+#             FROM stu
 #             WHERE user_id = ?
 #             ORDER BY created_time DESC
 #         '''
@@ -212,15 +212,15 @@ def update_con_password(conn, cursor, order_data, info):
 #
 # def select_con_student_pf(conn, cursor, order_data, info):
 #     if order_data["kind"] == 0:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM BBC.dbo.stu WHERE con_id = ? order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? order by created_time desc'
 #     elif order_data["kind"] == 1:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM BBC.dbo.stu WHERE con_id = ? and gl_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and gl_access = 1 order by created_time desc'
 #     elif order_data["kind"] == 2:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM BBC.dbo.stu WHERE con_id = ? and fr_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and fr_access = 1 order by created_time desc'
 #     elif order_data["kind"] == 3:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM BBC.dbo.stu WHERE con_id = ? and glf_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and glf_access = 1 order by created_time desc'
 #     else:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM BBC.dbo.stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
+#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
 #     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     stu_data = []
 #     if len(res_stu) == 0:
@@ -235,7 +235,7 @@ def update_con_password(conn, cursor, order_data, info):
 #
 #
 # def select_con_report_pf(conn, cursor, order_data, info):
-#     query = 'SELECT user_id, phone, first_name, last_name, field FROM BBC.dbo.stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
+#     query = 'SELECT user_id, phone, first_name, last_name, field FROM stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
 #     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
 #     stu_data = []
 #     if len(res_stu) == 0:
@@ -251,7 +251,7 @@ def update_con_password(conn, cursor, order_data, info):
 
 #
 # def update_con_stu(conn, cursor, order_data, info):
-#     query = 'SELECT con_id, finalized FROM BBC.dbo.stu WHERE user_id = ?'
+#     query = 'SELECT con_id, finalized FROM stu WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
 #     if res[0] == info["user_id"]:
 #         if res[1] == 0:
@@ -293,9 +293,9 @@ def update_con_password(conn, cursor, order_data, info):
 #               datetime.now().strftime("%Y-%m-%d %H:%M:%S"),)
 #     res_add_stu = db_helper.insert_value(conn=conn, cursor=cursor, table_name="stu", fields=field,
 #                                          values=values)
-#     query_cap = 'SELECT * FROM BBC.dbo.capacity WHERE user_id = ?'
+#     query_cap = 'SELECT * FROM capacity WHERE user_id = ?'
 #     res_cap = db_helper.search_table(conn=conn, cursor=cursor, query=query_cap, field=order_data["ins_id"])
-#     query_cap = 'SELECT * FROM BBC.dbo.capacity WHERE user_id = ?'
+#     query_cap = 'SELECT * FROM capacity WHERE user_id = ?'
 #     res_cap = db_helper.search_table(conn=conn, cursor=cursor, query=query_cap, field=order_data["ins_id"])
 #     GLA = int(res_cap[4])
 #     GLU = int(res_cap[3])
@@ -322,7 +322,7 @@ def update_con_password(conn, cursor, order_data, info):
 #
 #
 # def update_con_stu_finilize(conn, cursor, order_data):
-#     query = 'SELECT * FROM BBC.dbo.stu WHERE national_id = ?'
+#     query = 'SELECT * FROM stu WHERE national_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["national_id"])
 #     db_helper.update_record(conn, cursor, 'stu',
 #                             ['first_name', 'last_name', 'sex', 'birth_date', 'city',
@@ -342,7 +342,7 @@ def update_con_password(conn, cursor, order_data, info):
 #
 #
 # def update_con_stu_pf_finalize(conn, cursor, order_data, info):
-#     query = 'SELECT con_id, con_finalized FROM BBC.dbo.stu WHERE user_id = ?'
+#     query = 'SELECT con_id, con_finalized FROM stu WHERE user_id = ?'
 #     res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
 #     if info["user_id"] != res_stu[0]:
 #         return None, "شما مشاور این دانش‌آموز نیستد."

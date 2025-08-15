@@ -267,7 +267,7 @@ def search_fields(conn, cursor, data, info):
         field = data["field"]
         second_field = data["secondField"]
         native_province = data["nativeProvince"]
-        query = 'SELECT rank_zaban, rank_honar, finalized FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT rank_zaban, rank_honar, finalized FROM stu WHERE user_id = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
@@ -502,7 +502,7 @@ def search_fields_fr(conn, cursor, data, info):
         dorm = data["Dorm"]
         field = data["field"]
         second_field = data["secondField"]
-        query = 'SELECT rank_zaban, rank_honar, finalized FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT rank_zaban, rank_honar, finalized FROM stu WHERE user_id = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
@@ -578,11 +578,11 @@ def update_spfr(conn, cursor, data, info):
     values = ()
     try:
         special_list = data["special_list"]
-        query = 'SELECT field FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field FROM stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, "اطلاعات شما یافت نشد."
-        query = 'SELECT list_id FROM BBC.dbo.spfr WHERE user_id = ?'
+        query = 'SELECT list_id FROM spfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         field = '([user_id], [field], [special_list], [phone])'
         if res_list is not None:
@@ -611,11 +611,11 @@ def update_spfr(conn, cursor, data, info):
 
 def get_spfr(conn, cursor, data, info):
     try:
-        query = 'SELECT field FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field FROM stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []
-        query = 'SELECT special_list FROM BBC.dbo.spfr WHERE user_id = ?'
+        query = 'SELECT special_list FROM spfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         token = str(uuid.uuid4())
         if res_list is None:
@@ -637,11 +637,11 @@ def update_trfr(conn, cursor, data, info):
     values = ()
     try:
         trash_list = data["trash_list"]
-        query = 'SELECT field FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field FROM stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, "اطلاعات شما یافت نشد."
-        query = 'SELECT list_id FROM BBC.dbo.trfr WHERE user_id = ?'
+        query = 'SELECT list_id FROM trfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         field = '([user_id], [field], [trash_list], [phone])'
         if res_list is not None:
@@ -670,11 +670,11 @@ def update_trfr(conn, cursor, data, info):
 
 def get_trfr(conn, cursor, data, info):
     try:
-        query = 'SELECT field, phone FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field, phone FROM stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []
-        query = 'SELECT trash_list FROM BBC.dbo.trfr WHERE user_id = ?'
+        query = 'SELECT trash_list FROM trfr WHERE user_id = ?'
         res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         token = str(uuid.uuid4())
         if res_list is None:
@@ -832,7 +832,7 @@ def search_fields_frb(conn, cursor, data, info):
         part_time = data["partTime"]
         dorm = data["Dorm"]
         field = data["field"]
-        query = 'SELECT finalized FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT finalized FROM stu WHERE user_id = ?'
         res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
@@ -932,7 +932,7 @@ def get_spfrb(conn, cursor, data, info):
     try:
         field = data["field"]
         part = data["part"]
-        query = 'SELECT field, phone FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT field, phone FROM stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []
@@ -999,7 +999,7 @@ def get_trfrb(conn, cursor, data, info):
     try:
         field = data["field"]
         part = data["part"]
-        query = 'SELECT phone FROM BBC.dbo.stu WHERE user_id = ?'
+        query = 'SELECT phone FROM stu WHERE user_id = ?'
         res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         if res_student is None:
             return None, []

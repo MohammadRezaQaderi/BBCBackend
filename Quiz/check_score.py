@@ -94,11 +94,11 @@ def get_iq_score(catel_score, age):
 
 def score_computation(conn, cursor, user_id, user_age=9):
     start = time.time()
-    query = 'SELECT birth_date FROM BBC.dbo.stu WHERE user_id = ?'
+    query = 'SELECT birth_date FROM stu WHERE user_id = ?'
     res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
     if res_stu:
         user_age = 1400 - int(res_stu[0]) - 1
-    query = 'SELECT answers FROM BBC.dbo.quiz_answer WHERE user_id = ?'
+    query = 'SELECT answers FROM quiz_answer WHERE user_id = ?'
     res_score = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=user_id)
     user_answers = {}
     if len(res_score) < 7:

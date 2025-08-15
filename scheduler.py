@@ -100,7 +100,7 @@ class ReportScheduler:
         try:
             student_query = '''
                 SELECT user_id, phone, first_name, last_name, logo
-                FROM BBC.dbo.stu
+                FROM stu
                 WHERE user_id = ?
             '''
             student = db_helper.search_table(
@@ -328,7 +328,7 @@ class ReportScheduler:
 
             suggested_other, suggested_names, other_names = self._process_suggested_fields(fields)
 
-            query = 'SELECT user_id FROM BBC.dbo.hedayat_fields WHERE user_id = ?'
+            query = 'SELECT user_id FROM hedayat_fields WHERE user_id = ?'
             exists = db_helper.search_table(self.db_conn, self.db_cursor, query, user_id)
 
             if exists is None:

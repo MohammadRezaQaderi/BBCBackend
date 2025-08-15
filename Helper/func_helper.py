@@ -60,7 +60,7 @@ def random_phone_number(conn, cursor, n):
     range_start = 10 ** (n - 1)
     range_end = (10 ** n) - 1
     phone = '009' + str(random.randint(range_start, range_end))
-    query = 'SELECT * FROM BBC.dbo.users WHERE phone = ?'
+    query = 'SELECT * FROM users WHERE phone = ?'
     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=phone)
     if res is None:
         return phone

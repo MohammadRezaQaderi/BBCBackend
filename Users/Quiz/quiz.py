@@ -76,7 +76,7 @@ def submit_quiz_answer(conn, cursor, order_data, info):
 
 
 def get_stu_info(conn, cursor, user_id):
-    query = 'SELECT first_name, last_name FROM BBC.dbo.stu WHERE user_id = ?'
+    query = 'SELECT first_name, last_name FROM stu WHERE user_id = ?'
     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
     return res[0] + " " + res[1]
 
@@ -84,7 +84,7 @@ def get_stu_info(conn, cursor, user_id):
 def select_stu_quiz_table_info(conn, cursor, order_data, info):
     try:
         quiz_info = get_quiz_table_info()
-        query = 'SELECT quiz_id, state FROM BBC.dbo.quiz_answer WHERE user_id = ? ORDER BY quiz_id asc'
+        query = 'SELECT quiz_id, state FROM quiz_answer WHERE user_id = ? ORDER BY quiz_id asc'
         res = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         student_quiz_info = []
         if len(res) == 0:
@@ -134,7 +134,7 @@ def select_stu_quiz_table_info(conn, cursor, order_data, info):
 def select_stu_quiz_info(conn, cursor, order_data, info):
     try:
         token = str(uuid.uuid4())
-        query = 'SELECT quiz_id, answers, state FROM BBC.dbo.quiz_answer WHERE user_id = ? ORDER BY quiz_id asc'
+        query = 'SELECT quiz_id, answers, state FROM quiz_answer WHERE user_id = ? ORDER BY quiz_id asc'
         res = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
         quiz_id = order_data["quiz_id"] - 1
         if len(res) == 0:

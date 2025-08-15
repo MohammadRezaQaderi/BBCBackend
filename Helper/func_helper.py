@@ -76,16 +76,6 @@ def code_generator(size=6, chars=string.ascii_uppercase + string.ascii_lowercase
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def update_step_hoshmand(conn, cursor, number, user_id):
-    # todo try except
-    db_helper.update_record(
-        conn, cursor, "hoshmand_info", ["current_step", "edited_time"], [
-            number,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ], "user_id = ?", [user_id]
-    )
-
-
 def generate_discount_code(length=8, prefix="", suffix=""):
     characters = string.ascii_uppercase + string.digits
 
@@ -94,6 +84,15 @@ def generate_discount_code(length=8, prefix="", suffix=""):
     discount_code = f"{prefix}{random_part}{suffix}"
 
     return discount_code
+
+
+def update_step_hoshmand(conn, cursor, number, user_id):
+    db_helper.update_record(
+        conn, cursor, "hoshmand_info", ["current_step", "edited_time"], [
+            number,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ], "user_id = ?", [user_id]
+    )
 
 
 def delete_unneeded_table(conn, cursor, tables, id):

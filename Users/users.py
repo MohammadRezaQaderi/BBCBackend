@@ -12,7 +12,9 @@ from Users.FieldPick.field_pick import update_spfr, update_trfr, update_spfrb, u
     search_fields_frb, get_spfrb, get_trfrb
 from Users.Hoshmand.hoshmand import change_hoshmand_info, change_hoshmand_questions, change_hoshmand_examtype, \
     change_hoshmand_major, change_hoshmand_province, change_hoshmand_tables, change_hoshmand_chains, \
-    change_hoshmand_fields, change_hoshmand_sp_list
+    change_hoshmand_fields, change_hoshmand_sp_list, get_hoshmand_questions, get_hoshmand_examtype, get_hoshmand_major, \
+    get_hoshmand_province, get_hoshmand_tables, get_hoshmand_chains, get_hoshmand_chain_code, get_hoshmand_fields, \
+    get_hoshmand_sp_list, get_hoshmand_list
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info
@@ -672,6 +674,184 @@ def update_hoshmand_sp_list(conn, cursor, order_data, info):
         "response": {
             "message": message
         }
+    }
+
+
+def select_hoshmand_info(conn, cursor, data, info):
+    method_type = "SELECT"
+    token, info = get_hoshmand_info(conn, cursor, data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": info
+    }
+
+
+def select_hoshmand_questions(conn, cursor, data, info):
+    method_type = "SELECT"
+    token, info = get_hoshmand_questions(conn, cursor, data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": info_response
+    }
+
+
+def select_hoshmand_examtype(conn, cursor, data, info):
+    method_type = "SELECT"
+    token, is_empty, exam_types, user_data = get_hoshmand_examtype(conn, cursor, data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "is_empty": is_empty,
+            "exam_types": exam_types,
+            "user_data": user_data,
+        }
+    }
+
+
+def select_hoshmand_major(conn, cursor, data, info):
+    method_type = "SELECT"
+    token, majors, user_data = get_hoshmand_major(conn, cursor, data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "majors": majors,
+            "user_data": user_data,
+        }
+    }
+
+
+def select_hoshmand_province(conn, cursor, data, info):
+    method_type = "SELECT"
+    # todo here returns have error
+    token, majors, user_data = get_hoshmand_province(conn, cursor, data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "majors": majors,
+            "user_data": user_data,
+        }
+    }
+
+
+def select_hoshmand_tables(conn, cursor, data, info):
+    method_type = "SELECT"
+    token, skills_table, universities_table, exam_types, lock = get_hoshmand_tables(conn, cursor, data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "skills": skills_table,
+            "universities": universities_table,
+            "priorities": exam_types,
+            "lock": lock,
+        }
+    }
+
+
+def select_hoshmand_chains(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, chains, deleted_chains = get_hoshmand_chains(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "chains": chains,
+            "hand_chains": [],
+            "deleted_chains": deleted_chains,
+        }
+    }
+
+
+def select_hoshmand_chain_code(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, fields = get_hoshmand_chain_code(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "data": fields,
+        }
+    }
+
+
+def select_hoshmand_fields(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, fields, selected_list, is_hoshmand = get_hoshmand_fields(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "data": fields,
+            "selected_list": selected_list,
+            "is_hoshmand": is_hoshmand
+        }
+    }
+
+
+def select_hoshmand_sp_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, trash_list, selected_list, hoshmand_list, dash_info = get_hoshmand_sp_list(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "tracking_code": token,
+        "method_type": method_type,
+        "response": {
+            "trash_list": trash_list,
+            "selected_list": selected_list,
+            "hoshmand_list": hoshmand_list,
+            "user_data": dash_info
+        }
+    }
+
+
+def select_hoshmand_list(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    token, data, selected_list, is_hoshmand = get_hoshmand_list(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {
+        "status": 200,
+        "method_type": method_type,
+        "response": {
+            "data": data,
+            "selected_list": selected_list,
+            "is_hoshmand": is_hoshmand
+        },
+        "tracking_code": token
     }
 
 # def update_stu_info(conn, cursor, order_data, info):

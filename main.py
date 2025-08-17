@@ -12,14 +12,14 @@ app = FastAPI()
 async def check(conn, cursor, data):
     if data.get("token"):
         if data["token"] is not None:
-            query = "SELECT user_id, phone FROM tokens WHERE token = ?"
+            query = "SELECT user_id, phone, role FROM tokens WHERE token = ?"
             res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["token"])
             if res is None:
                 cursor.close()
                 conn.close()
                 return False, "نشست شما به پایان رسیده  لطفا یکبار خروج کرده و سپس ورود شوید.", None
             else:
-                return True, "", {"user_id": res.user_id, "phone": res.phone, }
+                return True, "", {"user_id": res.user_id, "phone": res.phone, "role": res.role}
         else:
             cursor.close()
             conn.close()

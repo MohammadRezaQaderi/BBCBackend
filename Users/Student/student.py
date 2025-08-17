@@ -65,7 +65,7 @@ def select_student_data(conn, cursor, order_data, info):
         query = '''
             SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number,
                    rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
-                   full_number_honar, rank_all_honar, hoshmand_access, fr_access, fr_limit, hoshmand_access, finalized
+                   full_number_honar, rank_all_honar, hoshmand_access, fr_access, ag_access, fr_limit, hoshmand_limit, finalized
             FROM stu
             WHERE user_id = ?
             ORDER BY created_time DESC
@@ -96,7 +96,7 @@ def select_student_data(conn, cursor, order_data, info):
                 "rank_all_honar": res_stu.rank_all_honar,
                 "hoshmand": res_stu.hoshmand_access,
                 "FR": res_stu.fr_access,
-                # "AG": res_stu[21],
+                "AG": res_stu.ag_access,
                 "finalized": res_stu.finalized,
                 "hoshmand_limit": res_stu.hoshmand_limit,
                 "fr_limit": res_stu.fr_limit,

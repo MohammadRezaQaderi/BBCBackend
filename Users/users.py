@@ -43,7 +43,7 @@ def check_user_request(conn, cursor, order_data, info):
     else:
         if info.get("user_id") != int(order_data["stu_id"]):
             return False
-    return False
+    return True
 
 
 def delete_token(conn, cursor, data, info):

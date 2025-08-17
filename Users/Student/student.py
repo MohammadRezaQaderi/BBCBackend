@@ -72,7 +72,6 @@ def select_student_data(conn, cursor, order_data, info):
         '''
         res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(order_data["stu_id"],))
         token = str(uuid.uuid4())
-        print("res_stu", res_stu)
         if not res_stu:
             return token, {}
         else:
@@ -107,7 +106,7 @@ def select_student_data(conn, cursor, order_data, info):
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            user_id, None, "bbc_api/stu", "select_student_data",
+            info.get("user_id"), info.get("phone"), "bbc_api/stu", "select_student_data",
             json.dumps(order_data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)

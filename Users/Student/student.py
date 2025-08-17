@@ -60,6 +60,61 @@ def select_student_info(conn, cursor, user_id):
         return None, None
 
 
+def select_student_data(conn, cursor, order_data, info):
+    try:
+        query = '''
+            SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number,
+                   rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
+                   full_number_honar, rank_all_honar, hoshmand_access, fr_access, fr_limit, hoshmand_access, finalized
+            FROM stu
+            WHERE user_id = ?
+            ORDER BY created_time DESC
+        '''
+        res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(order_data["stu_id"],))
+        if not res_stu:
+            token = str(uuid.uuid4())
+            return token, stu_data, ""
+
+        else:
+            token = str(uuid.uuid4())
+            s = {
+                "name": f"{res_stu.first_name} {res_stu.last_name}",
+                "user_id": res_stu.user_id,
+                "phone": res_stu.phone,
+                "sex": res_stu.sex,
+                "city": res_stu.city,
+                "birth_date": res_stu.birth_date,
+                "field": res_stu.field,
+                "quota": res_stu.quota,
+                "full_number": res_stu.full_number,
+                "rank": res_stu.rank,
+                "rank_all": res_stu.rank_all,
+                "last_rank": res_stu.last_rank,
+                "rank_zaban": res_stu.rank_zaban,
+                "full_number_zaban": res_stu.full_number_zaban,
+                "rank_all_zaban": res_stu.rank_all_zaban,
+                "rank_honar": res_stu.rank_honar,
+                "full_number_honar": res_stu.full_number_honar,
+                "rank_all_honar": res_stu.rank_all_honar,
+                "hoshmand": res_stu.hoshmand_access,
+                "FR": res_stu.fr_access,
+                # "AG": res_stu[21],
+                "finalized": res_stu.finalized,
+                "hoshmand_limit": res_stu.hoshmand_limit,
+                "fr_limit": res_stu.fr_limit,
+            }
+            return token, s, ""
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            user_id, None, "bbc_api/stu", "select_student_data",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
+
+
 def update_stu_user_profile(conn, cursor, order_data, info):
     try:
         row_count = db_helper.update_record(

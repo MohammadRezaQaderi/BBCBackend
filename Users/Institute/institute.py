@@ -392,56 +392,7 @@ def update_ins_con(conn, cursor, order_data, info):
 #
 #
 #
-# def select_ins_student_data(conn, cursor, order_data, info):
-#     query = '''
-#         SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number,
-#                rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
-#                full_number_honar, rank_all_honar, gl_access, fr_access, ag_access, finalized, ins_id, gl_limit, glf_limit, fr_limit, glf_access
-#         FROM stu
-#         WHERE user_id = ?
-#         ORDER BY created_time DESC
-#     '''
-#     res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(order_data["stu_id"],))
-#     if not res_stu:
-#         token = str(uuid.uuid4())
-#         return token, stu_data, ""
-#
-#     else:
-#         if res_stu[23] == info["user_id"]:
-#             token = str(uuid.uuid4())
-#             s = {
-#                 "name": f"{res_stu[1]} {res_stu[2]}",
-#                 "user_id": res_stu[0],
-#                 "phone": res_stu[3],
-#                 "sex": res_stu[4],
-#                 "city": res_stu[5],
-#                 "birth_date": res_stu[6],
-#                 "field": res_stu[7],
-#                 "quota": res_stu[8],
-#                 "full_number": res_stu[9],
-#                 "rank": res_stu[10],
-#                 "rank_all": res_stu[11],
-#                 "last_rank": res_stu[12],
-#                 "rank_zaban": res_stu[13],
-#                 "full_number_zaban": res_stu[14],
-#                 "rank_all_zaban": res_stu[15],
-#                 "rank_honar": res_stu[16],
-#                 "full_number_honar": res_stu[17],
-#                 "rank_all_honar": res_stu[18],
-#                 "GL": res_stu[19],
-#                 "FR": res_stu[20],
-#                 "AG": res_stu[21],
-#                 "GLF": res_stu[27],
-#                 "finalized": res_stu[22],
-#                 "gl_limit": res_stu[24],
-#                 "glf_limit": res_stu[25],
-#                 "fr_limit": res_stu[26],
-#             }
-#             return token, s, ""
-#         else:
-#             return None, None, "اطلاعات دانش‌آموز و موسسه هم‌خواتی تدارد."
-#
-#
+
 # def update_ins_stu(conn, cursor, order_data, info):
 #     query = 'SELECT ins_id, finalized FROM stu WHERE user_id = ?'
 #     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])

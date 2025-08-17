@@ -214,8 +214,8 @@ async def select_api(request: Request):
             return select_cons_stu(conn, cursor, order_data["data"], info)
         elif action == "select_students":
             return select_stu_list(conn, cursor, order_data["data"], info)
-        # elif action == "select_student_data":
-        #     return select_stu_data(conn, cursor, order_data["data"], info)
+        elif action == "select_student_data":
+            return select_stu_data(conn, cursor, order_data["data"], info)
         # elif action == "select_students_pf":
         #     return select_stu_pf_list(conn, cursor, order_data["data"], info)
         # elif action == "select_report":

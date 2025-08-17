@@ -71,12 +71,11 @@ def select_student_data(conn, cursor, order_data, info):
             ORDER BY created_time DESC
         '''
         res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(order_data["stu_id"],))
+        token = str(uuid.uuid4())
         if not res_stu:
-            token = str(uuid.uuid4())
-            return token, stu_data, ""
+            return token, stu_data
 
         else:
-            token = str(uuid.uuid4())
             s = {
                 "name": f"{res_stu.first_name} {res_stu.last_name}",
                 "user_id": res_stu.user_id,
@@ -103,7 +102,7 @@ def select_student_data(conn, cursor, order_data, info):
                 "hoshmand_limit": res_stu.hoshmand_limit,
                 "fr_limit": res_stu.fr_limit,
             }
-            return token, s, ""
+            return token, s
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'

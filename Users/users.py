@@ -209,6 +209,7 @@ def update_student_info(conn, cursor, order_data, info):
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "شما به این متد دسترسی ندارید."}
 
+
 def update_consultant(conn, cursor, order_data, info):
     method_type = "UPDATE"
     if info.get("role") == "ins":
@@ -317,18 +318,19 @@ def select_stu_list(conn, cursor, order_data, info):
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
+
 def select_stu_data(conn, cursor, order_data, info):
     method_type = "SELECT"
     have_access = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
     if info.get("role") == ["ins", "con", "stu"]:
-        token, message, finalized = select_student_data(conn, cursor, order_data, info)
+        token, data = select_student_data(conn, cursor, order_data, info)
         cursor.close()
         conn.close()
         if token:
             return {"status": 200, "tracking_code": token, "method_type": method_type,
-                    "response": {"message": message, "finalized": finalized}}
+                    "response": {"stu": data}}
         else:
             return {"status": 200, "tracking_code": None, "method_type": method_type,
                     "error": message}
@@ -337,7 +339,6 @@ def select_stu_data(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "شما به این متد دسترسی ندارید."}
-
 
 
 # Field Pick API

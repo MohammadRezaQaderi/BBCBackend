@@ -94,9 +94,10 @@ async def insert_api(request: Request):
             return add_consultant(conn, cursor, order_data["data"], info)
         elif action == "add_student":
             return add_student(conn, cursor, order_data["data"], info)
-        print("insert action >>>>>>>>>>>>>>>>>>>>", action)
-        return {"status": 405, "tracking_code": None, "method_type": None,
-                "error": "سرویس مورد نظر در دسترس نیست."}
+        else:
+            print("insert action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
     except KeyError as e:
         print(">>>> endpoint log error", e)
         conn, cursor = await db_connection()
@@ -221,7 +222,7 @@ async def select_api(request: Request):
         # elif action == "select_student_field_info_pdf":
         #     return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
         ######
-        if action == "select_student_info":
+        elif action == "select_student_info":
             return student_info(conn, cursor, order_data["data"], info)
         elif action == "select_student_accept_check":
             return accept_check_user_info(conn, cursor, order_data["data"], info)

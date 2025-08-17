@@ -193,7 +193,7 @@ def update_student_info(conn, cursor, order_data, info):
     have_access = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
-    if info.get("role") == ["ins", "con", "stu"]:
+    if info.get("role") in ["ins", "con", "stu"]:
         token, message, finalized = update_stu_info(conn, cursor, order_data, info, order_data["finalized"])
         cursor.close()
         conn.close()
@@ -324,7 +324,7 @@ def select_stu_data(conn, cursor, order_data, info):
     have_access = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
-    if info.get("role") == ["ins", "con", "stu"]:
+    if info.get("role") in ["ins", "con", "stu"]:
         token, data = select_student_data(conn, cursor, order_data, info)
         cursor.close()
         conn.close()

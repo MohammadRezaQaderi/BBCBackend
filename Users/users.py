@@ -337,6 +337,49 @@ def select_stu_data(conn, cursor, order_data, info):
                 "error": "شما به این متد دسترسی ندارید."}
 
 
+def select_stu_pf_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info["role"] == "ins":
+        token, stu_info = select_ins_student_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    elif info["role"] == "con":
+        token, stu_info = select_con_student_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def select_stu_report_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info["role"] == "ins":
+        token, stu_info = select_ins_report_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    elif info["role"] == "con":
+        token, stu_info = select_con_report_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+
 # Field Pick API
 def update_spfr_list(conn, cursor, order_data, info):
     method_type = "UPDATE"
@@ -971,47 +1014,6 @@ def select_hoshmand_list(conn, cursor, order_data, info):
         "tracking_code": token
     }
 
-
-def select_stu_pf_list(conn, cursor, order_data, info):
-    method_type = "SELECT"
-    if info["role"] == "ins":
-        token, stu_info = select_ins_student_pf(conn, cursor, order_data, info)
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"stu": stu_info}}
-    elif info["role"] == "con":
-        token, stu_info = select_con_student_pf(conn, cursor, order_data, info)
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"stu": stu_info}}
-    else:
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": method_type,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-
-
-def select_stu_report_list(conn, cursor, order_data, info):
-    method_type = "SELECT"
-    if info["role"] == "ins":
-        token, stu_info = select_ins_report_pf(conn, cursor, order_data, info)
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"stu": stu_info}}
-    elif info["role"] == "con":
-        token, stu_info = select_con_report_pf(conn, cursor, order_data, info)
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"stu": stu_info}}
-    else:
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": None, "method_type": method_type,
-                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"

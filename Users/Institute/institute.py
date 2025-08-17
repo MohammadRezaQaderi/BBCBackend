@@ -331,7 +331,7 @@ def select_ins_student_pf(conn, cursor, order_data, info):
             return token, stu_data
         for stu in res_stu:
             query = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
-            res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu[11],))
+            res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu.con_id,))
             con_name = ""
             if res_con and len(res_con) >= 2:
                 con_name = f"{res_con.first_name} {res_con.last_name}"

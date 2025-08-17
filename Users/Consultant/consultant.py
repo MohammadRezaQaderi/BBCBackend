@@ -120,11 +120,36 @@ def select_con_dashboard(conn, cursor, order_data, info):
     try:
         query = 'SELECT ins_id FROM con WHERE user_id = ?'
         res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
-        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res_con.ins_id)
+        ins_cap_query = 'SELECT hu, ha, fru, fra, agu, aga FROM capacity WHERE user_id = ?'
+        res_cap = db_helper.search_table(conn=conn, cursor=cursor, query=ins_cap_query, field=res_con.ins_id)
+
+        queries = {
+            'stu_count': 'SELECT count(*) FROM stu WHERE con_id = ?',
+            'con_finalized': 'SELECT count(*) FROM stu WHERE con_id = ? and con_finalized = 1',
+            'finish_quiz': 'SELECT count(*) FROM quiz_answer WHERE con_id = ? and quiz_id = 7 and state = 2',
+            'started_quiz': 'SELECT count(distinct (user_id)) FROM ERNew.dbo.quiz_answer WHERE con_id = ?',
+            'all_can_quiz': 'SELECT count(*) FROM ERNew.dbo.stu WHERE con_id = ? and ag_access = 1'
+        }
+
+        results = {}
+        for key, query in queries.items():
+            results[key] = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+
         token = str(uuid.uuid4())
-        cons_info = {"GLU": res[0], "GLA": res[1], "FRU": res[2], "FRA": res[3], "AGU": res[4], "AGA": res[5],
-                     "GLFU": res[6], "GLFA": res[7], }
+        cons_info = {
+            "HU": res_cap.hu,
+            "HA": res_cap.ha,
+            "FRU": res_cap.fru,
+            "FRA": res_cap.fra,
+            "AGU": res_cap.agu,
+            "AGA": res_cap.aga,
+            "stu_count": results['stu_count'][0],
+            "con_finalized": results['con_finalized'][0],
+            "finish_quiz": results['finish_quiz'][0],
+            "started_quiz": results['started_quiz'][0],
+            "all_can_quiz": results['all_can_quiz'][0]
+        }
+
         return token, cons_info
     except Exception as e:
         conn.rollback()

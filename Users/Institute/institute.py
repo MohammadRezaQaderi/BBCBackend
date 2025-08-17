@@ -38,8 +38,8 @@ def select_new_ins_dashboard(conn, cursor, order_data, info):
             'stu_count': 'SELECT count(*) FROM stu WHERE ins_id = ?',
             'con_finalized': 'SELECT count(*) FROM stu WHERE ins_id = ? and con_finalized = 1',
             'finish_quiz': 'SELECT count(*) FROM quiz_answer WHERE ins_id = ? and quiz_id = 7 and state = 2',
-            'started_quiz': 'SELECT count(distinct (user_id)) FROM quiz_answer WHERE ins_id = ?',
-            'all_can_quiz': 'SELECT count(*) FROM stu WHERE ins_id = ? and ag_access = 1'
+            'started_quiz': 'SELECT count(distinct (user_id)) FROM ERNew.dbo.quiz_answer WHERE ins_id = ?',
+            'all_can_quiz': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ? and ag_access = 1'
         }
 
         results = {}
@@ -392,7 +392,7 @@ def select_ins_student(conn, cursor, order_data, info):
     try:
         query = '''
                 SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
-                       hoshmand_access, fr_access, finalized, con_id, fr_limit, hoshmand_limit
+                       hoshmand_access, ag_access, fr_access, finalized, con_id, fr_limit, hoshmand_limit
                 FROM stu
                 WHERE ins_id = ?
                 ORDER BY created_time DESC
@@ -415,7 +415,8 @@ def select_ins_student(conn, cursor, order_data, info):
                 "sex": stu.sex,
                 "password": stu.password,
                 "hoshmand": stu.hoshmand_access,
-                "fr_access": stu.fr_access,
+                "FR": stu.fr_access,
+                "AG": stu.ag_access,
                 "hoshmand_limit": stu.hoshmand_limit,
                 "fr_limit": stu.fr_limit,
                 "con_id": stu.con_id,

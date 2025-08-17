@@ -141,7 +141,7 @@ def select_con_student(conn, cursor, order_data, info):
     try:
         query = '''
                 SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
-                   hoshmand_access, fr_access, finalized, fr_limit, hoshmand_limit
+                   hoshmand_access, ag_access, fr_access, finalized, fr_limit, hoshmand_limit
                 FROM stu
                 WHERE con_id = ?
                 ORDER BY created_time DESC
@@ -159,7 +159,8 @@ def select_con_student(conn, cursor, order_data, info):
                 "sex": stu.sex,
                 "password": stu.password,
                 "hoshmand": stu.hoshmand_access,
-                "fr_access": stu.fr_access,
+                "FR": stu.fr_access,
+                "AG": stu.ag_access,
                 "hoshmand_limit": stu.hoshmand_limit,
                 "fr_limit": stu.fr_limit,
                 "finalized": stu.finalized,

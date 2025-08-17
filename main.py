@@ -89,7 +89,10 @@ async def insert_api(request: Request):
             return {"status": 200, "tracking_code": None, "method_type": method_type,
                     "error": "اطلاعات از سمت شما ارسال نشده است."}
         action = order_data["method_type"]
-        info = {}
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
         if action == "add_consultant":
             return add_consultant(conn, cursor, order_data["data"], info)
         elif action == "add_student":

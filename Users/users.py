@@ -21,12 +21,7 @@ from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data
 
-uni_info = ["دانشگاه‌های شاخص سراسر کشور", "دانشگاه‌های برتر استان(های) بومی", "سایر دانشگاه‌های استان(های) بومی",
-            "دانشگاه‌های برتر استان‌های همسایه", "سایر دانشگاه‌های استان‌های همسایه",
-            "دانشگاه‌های برتر استان‌های نزدیک", "سایر دانشگاه‌های استان‌های نزدیک",
-            "دانشگاه‌های برتر استان‌های با فاصله زیاد", "سایر دانشگاه‌های استان‌های با فاصله زیاد",
-            "دانشگاه‌های برتر دیگر استان‌های کشور", "سایر دانشگاه‌های دیگر استان‌های کشور"]
-major_info = ["رشته‌های اولویت ۱", "رشته‌های اولویت ۲", "رشته‌های اولویت ۳", "رشته‌های اولویت ۴"]
+AUTHORIZED_ROLES = {"ins", "con", "stu"}
 
 
 def check_user_request(conn, cursor, order_data, info):
@@ -193,7 +188,7 @@ def update_student_info(conn, cursor, order_data, info):
     have_access = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
-    if info.get("role") in ["ins", "con", "stu"]:
+    if info and isinstance(info, dict) and info.get("role") in AUTHORIZED_ROLES:
         token, message, finalized = update_stu_info(conn, cursor, order_data, info, order_data["finalized"])
         cursor.close()
         conn.close()
@@ -324,7 +319,7 @@ def select_stu_data(conn, cursor, order_data, info):
     have_access = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
-    if info.get("role") in ["ins", "con", "stu"]:
+    if info and isinstance(info, dict) and info.get("role") in AUTHORIZED_ROLES:
         token, data = select_student_data(conn, cursor, order_data, info)
         cursor.close()
         conn.close()

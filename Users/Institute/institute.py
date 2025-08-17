@@ -265,45 +265,79 @@ def select_ins_cons_stu(conn, cursor, order_data, info):
 
 
 def select_ins_student(conn, cursor, order_data, info):
-    query = '''
-        SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
-               hoshmand_access, fr_access, finalized, con_id, fr_limit, hoshmand_limit
-        FROM stu
-        WHERE ins_id = ?
-        ORDER BY created_time DESC
-    '''
-    res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
-    stu_data = []
-    if not res_stu:
+    try:
+        query = '''
+                SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
+                       hoshmand_access, fr_access, finalized, con_id, fr_limit, hoshmand_limit
+                FROM stu
+                WHERE ins_id = ?
+                ORDER BY created_time DESC
+            '''
+        res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
+        stu_data = []
+        if not res_stu:
+            token = str(uuid.uuid4())
+            return token, stu_data
+        for stu in res_stu:
+            query = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
+            res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu.con_id,))
+            con_name = ""
+            if res_con and len(res_con) >= 2:
+                con_name = f"{res_con.first_name} {res_con.last_name}"
+            s = {
+                "name": f"{stu.first_name} {stu.last_name}",
+                "user_id": stu.user_id,
+                "phone": stu.phone,
+                "sex": stu.sex,
+                "password": stu.password,
+                "hoshmand": stu.hoshmand_access,
+                "fr_access": stu.fr_access,
+                "hoshmand_limit": stu.hoshmand_limit,
+                "fr_limit": stu.fr_limit,
+                "con_id": stu.con_id,
+                "con_name": con_name,
+                "finalized": stu.finalized,
+                "rank": stu.rank,
+                "field": stu.field,
+            }
+            stu_data.append(s)
+
         token = str(uuid.uuid4())
         return token, stu_data
-    for stu in res_stu:
-        query = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
-        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(stu.con_id,))
-        con_name = ""
-        if res_con and len(res_con) >= 2:
-            con_name = f"{res_con.first_name} {res_con.last_name}"
-        s = {
-            "name": f"{stu.first_name} {stu.last_name}",
-            "user_id": stu.user_id,
-            "phone": stu.phone,
-            "sex": stu.sex,
-            "password": stu.password,
-            "hoshmand": stu.hoshmand_access,
-            "fr_access": stu.fr_access,
-            "hoshmand_limit": stu.hoshmand_limit,
-            "fr_limit": stu.fr_limit,
-            "con_id": stu.con_id,
-            "con_name": con_name,
-            "finalized": stu.finalized,
-            "rank": stu.rank,
-            "field": stu.field,
-        }
-        stu_data.append(s)
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "select_ins_student",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
 
-    token = str(uuid.uuid4())
-    return token, stu_data
 
+def update_ins_con(conn, cursor, order_data, info):
+    try:
+        row_count = db_helper.update_record(
+            conn, cursor, "con", ['first_name', 'last_name', 'sex', 'editor_id', 'edited_time'],
+            [order_data["first_name"], order_data["last_name"], order_data["sex"], order_data["hCon_id"],
+             info["user_id"],
+             datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [str(order_data["consultant_id"])]
+        )
+        if row_count > 0:
+            token = str(uuid.uuid4())
+            return token, "اطلاعات مشاور با موفقیت تغییر یافت."
+        else:
+            return None, "اطلاعات کاربر تغییر نیافت."
+
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "update_ins_con",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
 
 # def select_ins_dashboard(conn, cursor, order_data):
 #     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
@@ -496,23 +530,7 @@ def select_ins_student(conn, cursor, order_data, info):
 #     return token, stu_data
 #
 #
-# def update_ins_con(conn, cursor, order_data, info):
-#     row_count = db_helper.update_record(
-#         conn, cursor, "con", ['first_name', 'last_name', 'sex', 'hCon_id', 'editor_id', 'edited_time'],
-#         [order_data["first_name"], order_data["last_name"], order_data["sex"], order_data["hCon_id"], info["user_id"],
-#          datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [str(order_data["consultant_id"])]
-#     )
-#     if row_count > 0:
-#         row_count = db_helper.update_record(
-#             conn, cursor, "stu", ['hCon_id', 'editor_id', 'edited_time'],
-#             [order_data["hCon_id"], info["user_id"],
-#              datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "con_id = ?", [str(order_data["consultant_id"])]
-#         )
-#         token = str(uuid.uuid4())
-#         return token, "اطلاعات مشاور با موفقیت تغییر یافت."
-#     else:
-#         return None, "اطلاعات کاربر تغییر نیافت."
-#
+
 #
 # def insert_ins_stu(conn, cursor, order_data, user_id, password, phone):
 #     field = '([user_id], [phone], [first_name], [last_name], [national_id], [sex], [ins_id], [hCon_id], [con_id], [password], [birth_date], [city], [field], [quota], [full_number], [rank], [rank_all], [last_rank], [rank_zaban], [full_number_zaban], [rank_all_zaban], [rank_honar], [full_number_honar], [rank_all_honar], [haveGL], [haveFR], [haveAG], [finalized], [hCon_finalized], [con_finalized], [adder_id], [editor_id], [DC_Created_Time], [DC_Edited_Time])'

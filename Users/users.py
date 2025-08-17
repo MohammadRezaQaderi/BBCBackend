@@ -17,7 +17,7 @@ from Users.Hoshmand.hoshmand import change_hoshmand_info, change_hoshmand_questi
     get_hoshmand_province, get_hoshmand_tables, get_hoshmand_chains, get_hoshmand_chain_code, get_hoshmand_fields, \
     get_hoshmand_sp_list, get_hoshmand_list
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password, \
-    select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student
+    select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student, update_ins_con
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info
 
@@ -208,6 +208,24 @@ def update_student_info(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "شما به این متد دسترسی ندارید."}
+
+def update_consultant(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    if info.get("role") == "ins":
+        token, message = update_ins_con(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        if token:
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": message}}
+        else:
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
 
 def student_info(conn, cursor, order_data, info):
@@ -973,33 +991,6 @@ def select_hoshmand_list(conn, cursor, order_data, info):
 #         if token:
 #             return {"status": 200, "tracking_code": token, "method_type": method_type,
 #                     "response": {"message": message, "finalized": finalized}}
-#         else:
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": message}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-# def update_consultant(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     if info.get("role") == "ins":
-#         token, message = update_ins_con(conn, cursor, order_data, info)
-#         cursor.close()
-#         conn.close()
-#         if token:
-#             return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                     "response": {"message": message}}
-#         else:
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": message}
-#     elif info.get("role") == "hCon":
-#         token, message = update_hCon_con(conn, cursor, order_data, info)
-#         cursor.close()
-#         conn.close()
-#         if token:
-#             return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                     "response": {"message": message}}
 #         else:
 #             return {"status": 200, "tracking_code": None, "method_type": method_type,
 #                     "error": message}

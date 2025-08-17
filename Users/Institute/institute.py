@@ -319,7 +319,7 @@ def update_ins_con(conn, cursor, order_data, info):
     try:
         row_count = db_helper.update_record(
             conn, cursor, "con", ['first_name', 'last_name', 'sex', 'editor_id', 'edited_time'],
-            [order_data["first_name"], order_data["last_name"], order_data["sex"], order_data["hCon_id"],
+            [order_data["first_name"], order_data["last_name"], order_data["sex"],
              info["user_id"],
              datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [str(order_data["consultant_id"])]
         )

@@ -316,6 +316,7 @@ def select_stu_list(conn, cursor, order_data, info):
 
 def select_stu_data(conn, cursor, order_data, info):
     method_type = "SELECT"
+    print(info)
     have_access = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}

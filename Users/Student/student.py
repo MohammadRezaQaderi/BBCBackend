@@ -72,13 +72,13 @@ def select_student_data(conn, cursor, order_data, info):
         '''
         res_stu = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(order_data["stu_id"],))
         token = str(uuid.uuid4())
+        print("res_stu", res_stu)
         if not res_stu:
-            return token, stu_data
-
+            return token, {}
         else:
             s = {
                 "name": f"{res_stu.first_name} {res_stu.last_name}",
-                "user_id": res_stu.user_id,
+                "user_id": order_data["stu_id"],
                 "phone": res_stu.phone,
                 "sex": res_stu.sex,
                 "city": res_stu.city,

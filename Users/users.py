@@ -6,7 +6,7 @@ from datetime import datetime
 from Helper import db_helper
 from Users.Auth.auth import check_signin, token_remove
 from Users.Consultant.consultant import insert_con_stu, update_con_user_profile, update_con_password, \
-    select_con_dashboard, select_con_student
+    select_con_dashboard, select_con_student, select_con_student_pf, select_con_report_pf
 from Users.FieldPick.field_pick import update_spfr, update_trfr, update_spfrb, update_trfrb, get_majors, \
     get_universities, get_cities, get_provinces, get_exam_types, search_fields, get_majors_fr, get_provinces_fr, \
     get_universities_fr, search_fields_fr, get_spfr, get_trfr, get_majors_frb, get_provinces_frb, get_universities_frb, \
@@ -17,7 +17,8 @@ from Users.Hoshmand.hoshmand import change_hoshmand_info, change_hoshmand_questi
     get_hoshmand_province, get_hoshmand_tables, get_hoshmand_chains, get_hoshmand_chain_code, get_hoshmand_fields, \
     get_hoshmand_sp_list, get_hoshmand_list
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password, \
-    select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student, update_ins_con
+    select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student, update_ins_con, \
+    select_ins_student_pf, select_ins_report_pf
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data
 
@@ -970,6 +971,48 @@ def select_hoshmand_list(conn, cursor, order_data, info):
         },
         "tracking_code": token
     }
+
+
+def select_stu_pf_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info["role"] == "ins":
+        token, stu_info = select_ins_student_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    elif info["role"] == "con":
+        token, stu_info = select_con_student_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def select_stu_report_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info["role"] == "ins":
+        token, stu_info = select_ins_report_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    elif info["role"] == "con":
+        token, stu_info = select_con_report_pf(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"

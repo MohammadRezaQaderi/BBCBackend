@@ -216,10 +216,10 @@ async def select_api(request: Request):
             return select_stu_list(conn, cursor, order_data["data"], info)
         elif action == "select_student_data":
             return select_stu_data(conn, cursor, order_data["data"], info)
-        # elif action == "select_students_pf":
-        #     return select_stu_pf_list(conn, cursor, order_data["data"], info)
-        # elif action == "select_report":
-        #     return select_stu_report_list(conn, cursor, order_data["data"], info)
+        elif action == "select_students_pf":
+            return select_stu_pf_list(conn, cursor, order_data["data"], info)
+        elif action == "select_report":
+            return select_stu_report_list(conn, cursor, order_data["data"], info)
         # elif action == "select_student_info":
         #     return select_stu_info(conn, cursor, order_data["data"], info)
         # elif action == "select_student_field_info":
@@ -229,8 +229,6 @@ async def select_api(request: Request):
         ######
         elif action == "select_student_info":
             return student_info(conn, cursor, order_data["data"], info)
-        elif action == "select_student_accept_check":
-            return accept_check_user_info(conn, cursor, order_data["data"], info)
         else:
             print("select action >>>>>>>>>>>>>>>>>>>>", action)
             return {"status": 405, "tracking_code": None, "method_type": None,

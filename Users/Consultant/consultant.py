@@ -138,37 +138,104 @@ def select_con_dashboard(conn, cursor, order_data, info):
 
 
 def select_con_student(conn, cursor, order_data, info):
-    query = '''
-            SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
-               hoshmand_access, fr_access, finalized, fr_limit, hoshmand_limit
-            FROM stu
-            WHERE con_id = ?
-            ORDER BY created_time DESC
-        '''
-    res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
-    stu_data = []
-    if not res_stu:
+    try:
+        query = '''
+                SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
+                   hoshmand_access, fr_access, finalized, fr_limit, hoshmand_limit
+                FROM stu
+                WHERE con_id = ?
+                ORDER BY created_time DESC
+            '''
+        res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
+        stu_data = []
+        if not res_stu:
+            token = str(uuid.uuid4())
+            return token, stu_data
+        for stu in res_stu:
+            s = {
+                "name": f"{stu.first_name} {stu.last_name}",
+                "user_id": stu.user_id,
+                "phone": stu.phone,
+                "sex": stu.sex,
+                "password": stu.password,
+                "hoshmand": stu.hoshmand_access,
+                "fr_access": stu.fr_access,
+                "hoshmand_limit": stu.hoshmand_limit,
+                "fr_limit": stu.fr_limit,
+                "finalized": stu.finalized,
+                "rank": stu.rank,
+                "field": stu.field,
+            }
+            stu_data.append(s)
         token = str(uuid.uuid4())
         return token, stu_data
-    for stu in res_stu:
-        s = {
-            "name": f"{stu.first_name} {stu.last_name}",
-            "user_id": stu.user_id,
-            "phone": stu.phone,
-            "sex": stu.sex,
-            "password": stu.password,
-            "hoshmand": stu.hoshmand_access,
-            "fr_access": stu.fr_access,
-            "hoshmand_limit": stu.hoshmand_limit,
-            "fr_limit": stu.fr_limit,
-            "finalized": stu.finalized,
-            "rank": stu.rank,
-            "field": stu.field,
-        }
-        stu_data.append(s)
-    token = str(uuid.uuid4())
-    return token, stu_data
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "select_con_student",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
 
+
+def select_con_student_pf(conn, cursor, order_data, info):
+    try:
+        if order_data["kind"] == 0:
+            query = 'SELECT user_id, first_name, last_name, hoshmand_access, fr_access, finalized, con_finalized, field FROM stu WHERE con_id = ? order by created_time desc'
+        elif order_data["kind"] == 1:
+            query = 'SELECT user_id, first_name, last_name, hoshmand_access, fr_access, finalized, con_finalized, field FROM stu WHERE con_id = ? and hoshmand_access = 1 order by created_time desc'
+        elif order_data["kind"] == 2:
+            query = 'SELECT user_id, first_name, last_name, hoshmand_access, fr_access, finalized, con_finalized, field FROM stu WHERE con_id = ? and fr_access = 1 order by created_time desc'
+        else:
+            return None, None
+        res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        stu_data = []
+        if len(res_stu) == 0:
+            token = str(uuid.uuid4())
+            return token, stu_data
+        for stu in res_stu:
+            s = {"name": stu.first_name + " " + stu.last_name, "user_id": stu.user_id, "hoshmand": stu.hoshmand_access,
+                 "FR": stu.fr_access, "finalized": stu.finalized, "con_finalized": stu.con_finalized,
+                 "field": stu.field}
+            stu_data.append(s)
+        token = str(uuid.uuid4())
+        return token, stu_data
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "select_con_student_pf",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
+
+
+def select_con_report_pf(conn, cursor, order_data, info):
+    try:
+        query = 'SELECT user_id, phone, first_name, last_name, field FROM stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
+        res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        stu_data = []
+        if len(res_stu) == 0:
+            token = str(uuid.uuid4())
+            return token, stu_data
+        for stu in res_stu:
+            s = {"name": stu.first_name + " " + stu.last_name, "user_id": stu.user_id, "field": stu.field,
+                 "phone": stu.phone}
+            stu_data.append(s)
+        token = str(uuid.uuid4())
+        return token, stu_data
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "select_con_report_pf",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
 #
 # def select_con_student_data(conn, cursor, order_data, info):
 #     query = '''
@@ -219,42 +286,6 @@ def select_con_student(conn, cursor, order_data, info):
 #             return None, None, "اطلاعات دانش‌آموز و مشاور هم‌خواتی تدارد."
 #
 #
-# def select_con_student_pf(conn, cursor, order_data, info):
-#     if order_data["kind"] == 0:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? order by created_time desc'
-#     elif order_data["kind"] == 1:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and gl_access = 1 order by created_time desc'
-#     elif order_data["kind"] == 2:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and fr_access = 1 order by created_time desc'
-#     elif order_data["kind"] == 3:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and glf_access = 1 order by created_time desc'
-#     else:
-#         query = 'SELECT user_id, first_name, last_name, gl_access, fr_access, ag_access, finalized, con_finalized, field, glf_access FROM stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
-#     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-#     stu_data = []
-#     if len(res_stu) == 0:
-#         token = str(uuid.uuid4())
-#         return token, stu_data
-#     for stu in res_stu:
-#         s = {"name": stu[1] + " " + stu[2], "user_id": stu[0], "GL": stu[3], "FR": stu[4], "AG": stu[5],
-#              "finalized": stu[6], "con_finalized": stu[7], "field": stu[8], "GLF": stu[9]}
-#         stu_data.append(s)
-#     token = str(uuid.uuid4())
-#     return token, stu_data
-#
-#
-# def select_con_report_pf(conn, cursor, order_data, info):
-#     query = 'SELECT user_id, phone, first_name, last_name, field FROM stu WHERE con_id = ? and ag_access = 1 order by created_time desc'
-#     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-#     stu_data = []
-#     if len(res_stu) == 0:
-#         token = str(uuid.uuid4())
-#         return token, stu_data
-#     for stu in res_stu:
-#         s = {"name": stu[2] + " " + stu[3], "user_id": stu[0], "field": stu[4], "phone": stu[1]}
-#         stu_data.append(s)
-#     token = str(uuid.uuid4())
-#     return token, stu_data
 #
 #
 

@@ -92,6 +92,7 @@ def check_data_base(conn, cursor, tables):
                     rank_all_honar INT,
                     hoshmand_access INT DEFAULT 0,
                     fr_access INT DEFAULT 0,
+                    ag_access INT DEFAULT 0,
                     lock INT DEFAULT 0,
                     finalized INT DEFAULT 0,
                     fr_limit INT DEFAULT 1,
@@ -595,7 +596,8 @@ conn_db = pyodbc.connect(
 )
 cursor_db = conn_db.cursor()
 
-drop_all_tables(conn_db, cursor_db, ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
+drop_all_tables(conn_db, cursor_db,
+                ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
                  'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
                  'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
@@ -606,7 +608,6 @@ check_data_base(conn_db, cursor_db,
                  'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
                  'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
                  'redis_log', 'error_log', 'api_logs', 'hoshmand_sp_logs'])
-
 
 cursor_db.execute("""
         INSERT INTO users (phone, password, role)

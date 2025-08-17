@@ -33,13 +33,13 @@ def select_new_ins_dashboard(conn, cursor, order_data, info):
         user_id = info["user_id"]
 
         queries = {
-            'capacity': 'SELECT hu, ha, fru, fra, agu, aga FROM ERNew.dbo.capacity WHERE user_id = ?',
-            'con_count': 'SELECT count(*) FROM ERNew.dbo.con WHERE ins_id = ?',
-            'stu_count': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ?',
-            'con_finalized': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ? and con_finalized = 1',
-            'finish_quiz': 'SELECT count(*) FROM ERNew.dbo.quiz_answer WHERE ins_id = ? and quiz_id = 7 and state = 2',
-            'started_quiz': 'SELECT count(distinct (user_id)) FROM ERNew.dbo.quiz_answer WHERE ins_id = ?',
-            'all_can_quiz': 'SELECT count(*) FROM ERNew.dbo.stu WHERE ins_id = ? and ag_access = 1'
+            'capacity': 'SELECT hu, ha, fru, fra, agu, aga FROM capacity WHERE user_id = ?',
+            'con_count': 'SELECT count(*) FROM con WHERE ins_id = ?',
+            'stu_count': 'SELECT count(*) FROM stu WHERE ins_id = ?',
+            'con_finalized': 'SELECT count(*) FROM stu WHERE ins_id = ? and con_finalized = 1',
+            'finish_quiz': 'SELECT count(*) FROM quiz_answer WHERE ins_id = ? and quiz_id = 7 and state = 2',
+            'started_quiz': 'SELECT count(distinct (user_id)) FROM quiz_answer WHERE ins_id = ?',
+            'all_can_quiz': 'SELECT count(*) FROM stu WHERE ins_id = ? and ag_access = 1'
         }
 
         results = {}

@@ -115,51 +115,60 @@ def update_con_password(conn, cursor, order_data, info):
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده"
 
-# def select_con_dashboard(conn, cursor, order_data, info):
-#     query = 'SELECT ins_id FROM con WHERE user_id = ?'
-#     res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-#     query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
-#     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res_con[0])
-#     token = str(uuid.uuid4())
-#     cons_info = {"GLU": res[0], "GLA": res[1], "FRU": res[2], "FRA": res[3], "AGU": res[4], "AGA": res[5],
-#                  "GLFU": res[6], "GLFA": res[7], }
-#     return token, cons_info
-#
-#
 
-#
-# def select_con_student(conn, cursor, order_data, info):
-#     query = '''
-#             SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
-#                    gl_access, fr_access, ag_access, finalized, glf_access
-#             FROM stu
-#             WHERE con_id = ?
-#             ORDER BY created_time DESC
-#         '''
-#     res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
-#     stu_data = []
-#     if not res_stu:
-#         token = str(uuid.uuid4())
-#         return token, stu_data
-#     for stu in res_stu:
-#         s = {
-#             "name": f"{stu[1]} {stu[2]}",
-#             "user_id": stu[0],
-#             "phone": stu[3],
-#             "sex": stu[4],
-#             "password": stu[5],
-#             "GL": stu[8],
-#             "FR": stu[9],
-#             "AG": stu[10],
-#             "GLF": stu[12],
-#             "finalized": stu[11],
-#             "rank": stu[6],
-#             "field": stu[7],
-#         }
-#         stu_data.append(s)
-#     token = str(uuid.uuid4())
-#     return token, stu_data
-#
+def select_con_dashboard(conn, cursor, order_data, info):
+    try:
+        query = 'SELECT ins_id FROM con WHERE user_id = ?'
+        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res_con.ins_id)
+        token = str(uuid.uuid4())
+        cons_info = {"GLU": res[0], "GLA": res[1], "FRU": res[2], "FRA": res[3], "AGU": res[4], "AGA": res[5],
+                     "GLFU": res[6], "GLFA": res[7], }
+        return token, cons_info
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/con", "select_con_dashboard",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
+
+
+def select_con_student(conn, cursor, order_data, info):
+    query = '''
+            SELECT user_id, first_name, last_name, phone, sex, password, rank, field,
+               hoshmand_access, fr_access, finalized, fr_limit, hoshmand_limit
+            FROM stu
+            WHERE con_id = ?
+            ORDER BY created_time DESC
+        '''
+    res_stu = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
+    stu_data = []
+    if not res_stu:
+        token = str(uuid.uuid4())
+        return token, stu_data
+    for stu in res_stu:
+        s = {
+            "name": f"{stu.first_name} {stu.last_name}",
+            "user_id": stu.user_id,
+            "phone": stu.phone,
+            "sex": stu.sex,
+            "password": stu.password,
+            "hoshmand": stu.hoshmand_access,
+            "fr_access": stu.fr_access,
+            "hoshmand_limit": stu.hoshmand_limit,
+            "fr_limit": stu.fr_limit,
+            "finalized": stu.finalized,
+            "rank": stu.rank,
+            "field": stu.field,
+        }
+        stu_data.append(s)
+    token = str(uuid.uuid4())
+    return token, stu_data
+
 #
 # def select_con_student_data(conn, cursor, order_data, info):
 #     query = '''

@@ -181,57 +181,78 @@ async def update_api(request: Request):
 
 
 # todo here not checked and not refactor
-# @app.post("/bbc_api/select_request")
-# async def select_api(request: Request):
-#     method_type = "SELECT"
-#     try:
-#         order_data = await request.json()
-#         conn, cursor = await db_connection()
-#         if "method_type" in order_data:
-#             method = order_data["method_type"]
-#             if method.upper() in ["UPDATE", "INSERT", "DELETE"]:
-#                 return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                         "error": "شما دسترسی به این سرویس‌ را ندارید."}
-#         if "data" not in order_data.keys():
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": "اطلاعات از سمت شما ارسال نشده است."}
-#         action = order_data["method_type"]
-#         state, state_message, info = await check(conn, cursor, order_data["data"])
-#         if not state:
-#             return {"status": 404, "tracking_code": None, "method_type": "AUTH",
-#                     "error": state_message}
-#         if action == "select_student_info":
-#             return student_info(conn, cursor, order_data["data"], info)
-#         elif action == "select_student_accept_check":
-#             return accept_check_user_info(conn, cursor, order_data["data"], info)
-#         else:
-#             print("select action >>>>>>>>>>>>>>>>>>>>", action)
-#             return {"status": 405, "tracking_code": None, "method_type": None,
-#                     "error": "سرویس مورد نظر در دسترس نیست."}
-#     except KeyError as e:
-#         conn, cursor = await db_connection()
-#         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-#         values_log = (
-#             None, None, "bbc_api/select_request", "select_api",
-#             None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
-#         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-#                                values=values_log)
-#         cursor.close()
-#         conn.close()
-#         return {"status": 401, "tracking_code": None, "method_type": method_type,
-#                 "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
-#     except Exception as e:
-#         conn, cursor = await db_connection()
-#         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
-#         values_log = (
-#             None, None, "bbc_api/select_request", "select_api",
-#             None, str(e))
-#         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
-#                                values=values_log)
-#         cursor.close()
-#         conn.close()
-#         return {"status": 500, "tracking_code": None, "method_type": None,
-#                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
+@app.post("/bbc_api/select_request")
+async def select_api(request: Request):
+    method_type = "SELECT"
+    try:
+        order_data = await request.json()
+        conn, cursor = await db_connection()
+        if "method_type" in order_data:
+            method = order_data["method_type"]
+            if method.upper() in ["UPDATE", "INSERT", "DELETE"]:
+                return {"status": 200, "tracking_code": None, "method_type": method_type,
+                        "error": "شما دسترسی به این سرویس‌ را ندارید."}
+        if "data" not in order_data.keys():
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": "اطلاعات از سمت شما ارسال نشده است."}
+        action = order_data["method_type"]
+        state, state_message, info = await check(conn, cursor, order_data["data"])
+        if not state:
+            return {"status": 404, "tracking_code": None, "method_type": "AUTH",
+                    "error": state_message}
+        if action == "select_dashboard_info":
+            return new_dash(conn, cursor, order_data["data"], info)
+        elif action == "select_consultants":
+            return select_con_list(conn, cursor, order_data["data"], info)
+        elif action == "select_cons_stu":
+            return select_cons_stu(conn, cursor, order_data["data"], info)
+        elif action == "select_students":
+            return select_stu_list(conn, cursor, order_data["data"], info)
+        # elif action == "select_student_data":
+        #     return select_stu_data(conn, cursor, order_data["data"], info)
+        # elif action == "select_students_pf":
+        #     return select_stu_pf_list(conn, cursor, order_data["data"], info)
+        # elif action == "select_report":
+        #     return select_stu_report_list(conn, cursor, order_data["data"], info)
+        # elif action == "select_student_info":
+        #     return select_stu_info(conn, cursor, order_data["data"], info)
+        # elif action == "select_student_field_info":
+        #     return select_student_field_info(conn, cursor, order_data["data"], info)
+        # elif action == "select_student_field_info_pdf":
+        #     return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
+        ######
+        if action == "select_student_info":
+            return student_info(conn, cursor, order_data["data"], info)
+        elif action == "select_student_accept_check":
+            return accept_check_user_info(conn, cursor, order_data["data"], info)
+        else:
+            print("select action >>>>>>>>>>>>>>>>>>>>", action)
+            return {"status": 405, "tracking_code": None, "method_type": None,
+                    "error": "سرویس مورد نظر در دسترس نیست."}
+    except KeyError as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/select_request", "select_api",
+            None, str("%s با اطلاعات شما ارسال نشده است." % str(e)))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 401, "tracking_code": None, "method_type": method_type,
+                "error": "%s با اطلاعات شما ارسال نشده است." % str(e)}
+    except Exception as e:
+        conn, cursor = await db_connection()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            None, None, "bbc_api/select_request", "select_api",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        cursor.close()
+        conn.close()
+        return {"status": 500, "tracking_code": None, "method_type": None,
+                "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
 @app.post("/bbc_api/delete_request")

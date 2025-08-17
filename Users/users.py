@@ -5,7 +5,8 @@ from datetime import datetime
 
 from Helper import db_helper
 from Users.Auth.auth import check_signin, token_remove
-from Users.Consultant.consultant import insert_con_stu, update_con_user_profile, update_con_password
+from Users.Consultant.consultant import insert_con_stu, update_con_user_profile, update_con_password, \
+    select_con_dashboard, select_con_student
 from Users.FieldPick.field_pick import update_spfr, update_trfr, update_spfrb, update_trfrb, get_majors, \
     get_universities, get_cities, get_provinces, get_exam_types, search_fields, get_majors_fr, get_provinces_fr, \
     get_universities_fr, search_fields_fr, get_spfr, get_trfr, get_majors_frb, get_provinces_frb, get_universities_frb, \
@@ -15,7 +16,8 @@ from Users.Hoshmand.hoshmand import change_hoshmand_info, change_hoshmand_questi
     change_hoshmand_fields, change_hoshmand_sp_list, get_hoshmand_questions, get_hoshmand_examtype, get_hoshmand_major, \
     get_hoshmand_province, get_hoshmand_tables, get_hoshmand_chains, get_hoshmand_chain_code, get_hoshmand_fields, \
     get_hoshmand_sp_list, get_hoshmand_list
-from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password
+from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password, \
+    select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info
 
@@ -218,6 +220,84 @@ def student_info(conn, cursor, order_data, info):
     conn.close()
     return {"status": 200, "tracking_code": token, "method_type": method_type,
             "response": {"data": dash_info}}
+
+
+def new_dash(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info.get("role") == "ins":
+        token, dash_info = select_new_ins_dashboard(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"data": dash_info}}
+    elif info.get("role") == "con":
+        token, dash_info = select_con_dashboard(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"data": dash_info}}
+    elif info.get("role") == "stu":
+        token, dash_info, finalized = select_stu_dashboard(conn, cursor, order_data)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"data": dash_info, "finalized": finalized}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def select_con_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info.get("role") == "ins":
+        token, con_info = select_ins_consultant(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"con": con_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def select_cons_stu(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info.get("role") == "ins":
+        token, con_info = select_ins_cons_stu(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"con": con_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def select_stu_list(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    if info.get("role") == "ins":
+        token, stu_info = select_ins_student(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    elif info.get("role") == "con":
+        token, stu_info = select_con_student(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"stu": stu_info}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
 
 # Field Pick API

@@ -212,6 +212,131 @@ def update_user_ins_pic(conn, cursor, order_data, info):
         return None, None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
 
 
+def update_ins_stu_access(conn, cursor, order_data, info):
+    try:
+        query = 'SELECT hu, ha, fru, fra, agu, aga FROM capacity WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
+        if not res:
+            return None, "ظرفیت کاربر یافت نشد."
+        hu, ha, fru, fra, agu, aga = res.hu, res.ha, res.fru, res.fra, res.agu, res.aga
+        kind = order_data["kind"]
+        if kind == "hoshmand":
+            if ha == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته هوشمند ندارید."
+            update_fields = ["hoshmand_access", "hoshmand_limit", "editor_id", "edited_time"]
+            update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            ha -= 1
+            hu += 1
+            capacity_update_fields = ["ha", "hu", "edited_time"]
+            capacity_update_values = [ha, hu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        elif kind == "FR":
+            if fra == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته آزاد ندارید."
+            update_fields = ["fr_access", "fr_limit", "editor_id", "edited_time"]
+            update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            fra -= 1
+            fru += 1
+            capacity_update_fields = ["fra", "fru", "edited_time"]
+            capacity_update_values = [fra, fru, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        elif kind == "AG":
+            if aga == 0:
+                return None, "شما ظرفیت برای افزودن دانش‌آموز برای هدایت شغلی ندارید."
+            update_fields = ["ag_access", "editor_id", "edited_time"]
+            update_values = [1, info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            aga -= 1
+            agu += 1
+            capacity_update_fields = ["aga", "agu", "edited_time"]
+            capacity_update_values = [aga, agu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+
+        else:
+            return None, "نوع دسترسی نامعتبر است."
+        student_condition = "user_id = ?"
+        student_condition_values = [order_data["stu_id"]]
+        student_updated = db_helper.update_record(
+            conn, cursor, "stu", update_fields, update_values, student_condition, student_condition_values
+        )
+
+        if student_updated == 0:
+            return None, "خطا در بروزرسانی اطلاعات دانش‌آموز."
+        capacity_condition = "user_id = ?"
+        capacity_condition_values = [info["user_id"]]
+        capacity_updated = db_helper.update_record(
+            conn, cursor, "capacity", capacity_update_fields, capacity_update_values, capacity_condition,
+            capacity_condition_values
+        )
+
+        if capacity_updated == 0:
+            return None, "خطا در بروزرسانی ظرفیت کاربر."
+        token = str(uuid.uuid4())
+        return token, "عملیات با موفقیت انجام شد."
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "update_ins_stu_access",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+
+
+def update_ins_ag_access(conn, cursor, order_data, info):
+    try:
+        if order_data["kind"] == "AGAccess":
+            row_count = db_helper.update_record(
+                conn, cursor, "stu", ['ag_pf', 'edited_time'],
+                [order_data["value"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                "user_id = ?", [order_data["stu_id"]]
+            )
+        elif order_data["kind"] == "AGPDF":
+            row_count = db_helper.update_record(
+                conn, cursor, "stu", ['ag_pdf', 'edited_time'],
+                [order_data["value"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                "user_id = ?", [order_data["stu_id"]]
+            )
+        else:
+            return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+        if row_count > 0:
+            return str(uuid.uuid4()), "اطلاعات شما با موفقیت تغییر یافت."
+        else:
+            return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "update_ins_ag_access",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+
+
+def update_ins_permission(conn, cursor, order_data, info):
+    try:
+        row_count = db_helper.update_record(
+            conn, cursor, "ins", ['probability_permission', 'edited_time'],
+            [order_data["permission"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            "user_id = ?", [info["user_id"]]
+        )
+        if row_count > 0:
+            token = str(uuid.uuid4())
+            return token, "نمایش احتمال قبولی‌ها تغییر یافت. برای اعمال به دانش‌آموزان خود اعلام کنید که از سامانه یکبار خروج کرده و دوباره برگردند.", \
+                order_data["permission"]
+        else:
+            return None, "تغییرات شما اعمال نشد. لطفا از پشتیبانی پیگیری بفرمایید.", 0
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "update_ins_permission",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
+
+
 def select_ins_consultant(conn, cursor, order_data, info):
     try:
         con_data = []
@@ -538,95 +663,8 @@ def select_ins_report_pf(conn, cursor, order_data, info):
 #
 #
 
-# def update_ins_stu_access(conn, cursor, order_data, info):
-#     try:
-#         query = 'SELECT glu, gla, fru, fra, agu, aga, glfu, glfa FROM capacity WHERE user_id = ?'
-#         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=(info["user_id"],))
 #
-#         if not res:
-#             return None, "ظرفیت کاربر یافت نشد."
-#         glu, gla, fru, fra, agu, aga, glfu, glfa = res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7]
-#         kind = order_data["kind"]
-#         if kind == "GL":
-#             if gla == 0:
-#                 return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته سراسری ندارید."
-#             update_fields = ["gl_access", "gl_limit", "editor_id", "edited_time"]
-#             update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#             gla -= 1
-#             glu += 1
-#             capacity_update_fields = ["gla", "glu", "edited_time"]
-#             capacity_update_values = [gla, glu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#
-#         elif kind == "GLF":
-#             if glfa == 0:
-#                 return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته فرهنگیان ندارید."
-#             update_fields = ["glf_access", "glf_limit", "editor_id", "edited_time"]
-#             update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#             glfa -= 1
-#             glfu += 1
-#             capacity_update_fields = ["glfa", "glfu", "edited_time"]
-#             capacity_update_values = [glfa, glfu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#
-#         elif kind == "FR":
-#             if fra == 0:
-#                 return None, "شما ظرفیت برای افزودن دانش‌آموز برای انتخاب رشته آزاد ندارید."
-#             update_fields = ["fr_access", "fr_limit", "editor_id", "edited_time"]
-#             update_values = [1, order_data["limitation"], info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#             fra -= 1
-#             fru += 1
-#             capacity_update_fields = ["fra", "fru", "edited_time"]
-#             capacity_update_values = [fra, fru, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#
-#         elif kind == "AG":
-#             if aga == 0:
-#                 return None, "شما ظرفیت برای افزودن دانش‌آموز برای هدایت شغلی ندارید."
-#             update_fields = ["ag_access", "editor_id", "edited_time"]
-#             update_values = [1, info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#             aga -= 1
-#             agu += 1
-#             capacity_update_fields = ["aga", "agu", "edited_time"]
-#             capacity_update_values = [aga, agu, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-#
-#         else:
-#             return None, "نوع دسترسی نامعتبر است."
-#         student_condition = "user_id = ?"
-#         student_condition_values = [order_data["stu_id"]]
-#         student_updated = db_helper.update_record(
-#             conn, cursor, "stu", update_fields, update_values, student_condition, student_condition_values
-#         )
-#
-#         if student_updated == 0:
-#             return None, "خطا در بروزرسانی اطلاعات دانش‌آموز."
-#         capacity_condition = "user_id = ?"
-#         capacity_condition_values = [info["user_id"]]
-#         capacity_updated = db_helper.update_record(
-#             conn, cursor, "capacity", capacity_update_fields, capacity_update_values, capacity_condition,
-#             capacity_condition_values
-#         )
-#
-#         if capacity_updated == 0:
-#             return None, "خطا در بروزرسانی ظرفیت کاربر."
-#         token = str(uuid.uuid4())
-#         return token, "عملیات با موفقیت انجام شد."
-#     except Exception as e:
-#         conn.rollback()
-#         print(f"Error in update_ins_stu_access: {e}")
-#         return None, "خطا در انجام عملیات."
-#
-#
-# def update_ins_permission(conn, cursor, order_data, info):
-#     row_count = db_helper.update_record(
-#         conn, cursor, "ins", ['probability_permission', 'edited_time'],
-#         [order_data["permission"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#         "user_id = ?", [info["user_id"]]
-#     )
-#     if row_count > 0:
-#         token = str(uuid.uuid4())
-#         return token, "نمایش احتمال قبولی‌ها تغییر یافت. برای اعمال به دانش‌آموزان خود اعلام کنید که از سامانه یکبار خروج کرده و دوباره برگردند.", \
-#             order_data["permission"]
-#     else:
-#         return None, "تغییرات شما اعمال نشد. لطفا از پشتیبانی پیگیری بفرمایید.", 0
-#
+
 #
 
 #
@@ -746,22 +784,3 @@ def select_ins_report_pf(conn, cursor, order_data, info):
 #     return token, code
 #
 #
-# def update_ins_ag_access(conn, cursor, order_data, info):
-#     if order_data["kind"] == "AGAccess":
-#         row_count = db_helper.update_record(
-#             conn, cursor, "stu", ['ag_pf', 'edited_time'],
-#             [order_data["value"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [order_data["stu_id"]]
-#         )
-#     elif order_data["kind"] == "AGPDF":
-#         row_count = db_helper.update_record(
-#             conn, cursor, "stu", ['ag_pdf', 'edited_time'],
-#             [order_data["value"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-#             "user_id = ?", [order_data["stu_id"]]
-#         )
-#     else:
-#         return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."
-#     if row_count > 0:
-#         return str(uuid.uuid4()), "اطلاعات شما با موفقیت تغییر یافت."
-#     else:
-#         return None, "متاسفانه برای تغییر اطلاعات شما مشکلی پیش آمده با پشتیبانی ارتباط بگیرید."

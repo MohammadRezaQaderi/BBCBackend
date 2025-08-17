@@ -18,9 +18,10 @@ from Users.Hoshmand.hoshmand import change_hoshmand_info, change_hoshmand_questi
     get_hoshmand_sp_list, get_hoshmand_list
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password, \
     select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student, update_ins_con, \
-    select_ins_student_pf, select_ins_report_pf
+    select_ins_student_pf, select_ins_report_pf, update_ins_stu_access, update_ins_ag_access, update_ins_permission
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
-from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data
+from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data, \
+    select_student_info
 
 AUTHORIZED_ROLES = {"ins", "con", "stu"}
 
@@ -225,6 +226,77 @@ def update_consultant(conn, cursor, order_data, info):
                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
 
+def update_student_access(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    request_check = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    if info["role"] == "ins":
+        token, message = update_ins_stu_access(conn, cursor, order_data, info)
+        if token is not None:
+            cursor.close()
+            conn.close()
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {"message": "دسترسی به دانش‌آموز شما داده شد"}}
+        else:
+            cursor.close()
+            conn.close()
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def update_ag_access(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    request_check = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    if info["role"] in ["ins"]:
+        token, message = update_ins_ag_access(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"message": message}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def update_student_permission(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    if info["role"] == "ins":
+        token, message, permission = update_ins_permission(conn, cursor, order_data, info)
+        if token is not None:
+            cursor.close()
+            conn.close()
+            return {"status": 200, "tracking_code": token, "method_type": method_type,
+                    "response": {
+                        "message": message,
+                        "data": {"permission": permission}}}
+        else:
+            cursor.close()
+            conn.close()
+            return {"status": 200, "tracking_code": None, "method_type": method_type,
+                    "error": message}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
 def student_info(conn, cursor, order_data, info):
     method_type = "SELECT"
     token, dash_info, message = select_student_info(conn, cursor, info)
@@ -377,7 +449,6 @@ def select_stu_report_list(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-
 
 
 # Field Pick API
@@ -1013,7 +1084,6 @@ def select_hoshmand_list(conn, cursor, order_data, info):
         },
         "tracking_code": token
     }
-
 
 # def update_stu_info(conn, cursor, order_data, info):
 #     method_type = "UPDATE"

@@ -156,6 +156,12 @@ async def update_api(request: Request):
             return update_student_info(conn, cursor, order_data["data"], info)
         elif action == "update_password":
             return update_password(conn, cursor, order_data["data"], info)
+        elif action == "update_student_access":
+            return update_student_access(conn, cursor, order_data["data"], info)
+        elif action == "update_ag_access":
+            return update_ag_access(conn, cursor, order_data["data"], info)
+        elif action == "update_permission":
+            return update_student_permission(conn, cursor, order_data["data"], info)
         else:
             print("update action >>>>>>>>>>>>>>>>>>>>", action)
             return {"status": 405, "tracking_code": None, "method_type": None,

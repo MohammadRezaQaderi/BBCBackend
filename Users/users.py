@@ -30,19 +30,24 @@ AUTHORIZED_ROLES = {"ins", "con", "stu"}
 
 def check_user_request(conn, cursor, order_data, info):
     if info.get("role") == "ins":
-        query = 'SELECT ins_id FROM stu WHERE user_id = ?'
+        query = 'SELECT ins_id, phone FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
         if res.ins_id != info.get("user_id"):
-            return False
+            return False, None
+        else:
+            return True, res.phone
     elif info.get("role") == "con":
-        query = 'SELECT con_id FROM stu WHERE user_id = ?'
+        query = 'SELECT con_id, phone FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
         if res.con_id != info.get("user_id"):
-            return False
+            return False, None
+        else:
+            return True, res.phone
     else:
         if info.get("user_id") != int(order_data["stu_id"]):
-            return False
-    return True
+            return False, None
+        else:
+            return True, info.get("phone")
 
 
 def check_user_request_product(conn, cursor, order_data, info):
@@ -229,7 +234,7 @@ def update_student_consult(conn, cursor, order_data, info):
 
 def update_student_info(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    have_access = check_user_request(conn, cursor, order_data, info)
+    have_access, stu_phone = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
     if info and isinstance(info, dict) and info.get("role") in AUTHORIZED_ROLES:
@@ -270,7 +275,7 @@ def update_consultant(conn, cursor, order_data, info):
 
 def update_student_access(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    request_check = check_user_request(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
     if not request_check:
         cursor.close()
         conn.close()
@@ -297,7 +302,7 @@ def update_student_access(conn, cursor, order_data, info):
 
 def update_ag_access(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    request_check = check_user_request(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
     if not request_check:
         cursor.close()
         conn.close()
@@ -431,7 +436,7 @@ def select_stu_list(conn, cursor, order_data, info):
 
 def select_stu_data(conn, cursor, order_data, info):
     method_type = "SELECT"
-    have_access = check_user_request(conn, cursor, order_data, info)
+    have_access, stu_phone = check_user_request(conn, cursor, order_data, info)
     if not have_access:
         return {"status": 200, "tracking_code": None, "method_type": method_type, "error": "اطلاعات هم‌خوانی ندارد"}
     if info and isinstance(info, dict) and info.get("role") in AUTHORIZED_ROLES:
@@ -526,6 +531,12 @@ def select_student_field_info_pdf(conn, cursor, order_data, info):
 # Field Pick API
 def update_spfr_list(conn, cursor, order_data, info):
     method_type = "UPDATE"
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
     tracking_code, message = update_spfr(conn, cursor, order_data, info)
     cursor.close()
     conn.close()
@@ -535,6 +546,12 @@ def update_spfr_list(conn, cursor, order_data, info):
 
 def update_trfr_list(conn, cursor, order_data, info):
     method_type = "UPDATE"
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
     tracking_code, message = update_trfr(conn, cursor, order_data, info)
     cursor.close()
     conn.close()
@@ -562,6 +579,12 @@ def select_trfr_list(conn, cursor, order_data, info):
 
 def update_spfrb_list(conn, cursor, order_data, info):
     method_type = "UPDATE"
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
     tracking_code, message = update_spfrb(conn, cursor, order_data, info)
     cursor.close()
     conn.close()
@@ -571,6 +594,12 @@ def update_spfrb_list(conn, cursor, order_data, info):
 
 def update_trfrb_list(conn, cursor, order_data, info):
     method_type = "UPDATE"
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
     tracking_code, message = update_trfrb(conn, cursor, order_data, info)
     cursor.close()
     conn.close()
@@ -846,7 +875,13 @@ def select_quiz_info(conn, cursor, order_data, info):
 # Hoshmand Functionality
 def update_hoshmand_info(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, data, message = change_hoshmand_info(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, data, message = change_hoshmand_info(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -862,7 +897,13 @@ def update_hoshmand_info(conn, cursor, order_data, info):
 
 def update_hoshmand_questions(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_questions(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_questions(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -877,7 +918,13 @@ def update_hoshmand_questions(conn, cursor, order_data, info):
 
 def update_hoshmand_examtype(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_examtype(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_examtype(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -892,7 +939,13 @@ def update_hoshmand_examtype(conn, cursor, order_data, info):
 
 def update_hoshmand_major(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_major(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_major(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -907,7 +960,13 @@ def update_hoshmand_major(conn, cursor, order_data, info):
 
 def update_hoshmand_province(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_province(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_province(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -922,7 +981,13 @@ def update_hoshmand_province(conn, cursor, order_data, info):
 
 def update_hoshmand_tables(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_tables(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_tables(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -937,7 +1002,13 @@ def update_hoshmand_tables(conn, cursor, order_data, info):
 
 def update_hoshmand_chains(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_chains(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_chains(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -952,7 +1023,13 @@ def update_hoshmand_chains(conn, cursor, order_data, info):
 
 def update_hoshmand_fields(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_fields(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_fields(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -967,7 +1044,13 @@ def update_hoshmand_fields(conn, cursor, order_data, info):
 
 def update_hoshmand_sp_list(conn, cursor, order_data, info):
     method_type = "UPDATE"
-    token, message = change_hoshmand_sp_list(conn, cursor, order_data, info)
+    request_check, stu_phone = check_user_request(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
+    token, message = change_hoshmand_sp_list(conn, cursor, order_data, info, stu_phone)
     cursor.close()
     conn.close()
     return {

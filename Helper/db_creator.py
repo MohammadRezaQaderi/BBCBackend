@@ -222,8 +222,6 @@ def check_data_base(conn, cursor, tables):
                     current_step INT DEFAULT 1,
                     create_chain_times INT DEFAULT 0,           
                     create_chain_hoshmand INT DEFAULT 0,    
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL,        
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -242,8 +240,6 @@ def check_data_base(conn, cursor, tables):
                     major INT DEFAULT 3,           
                     obligation NVARCHAR(MAX) DEFAULT '0,1',
                     method NVARCHAR(MAX) DEFAULT 'با آزمون,صرفا با سوابق تحصیلی',    
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL,      
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -259,8 +255,6 @@ def check_data_base(conn, cursor, tables):
                     phone NVARCHAR(12) NOT NULL,
                     data NVARCHAR(MAX),
                     examtypes NVARCHAR(MAX),
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL, 
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -280,8 +274,6 @@ def check_data_base(conn, cursor, tables):
                     major3 NVARCHAR(MAX),
                     major4 NVARCHAR(MAX),
                     majors NVARCHAR(MAX),
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL, 
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -302,8 +294,6 @@ def check_data_base(conn, cursor, tables):
                     province4 NVARCHAR(MAX),
                     province5 NVARCHAR(MAX),
                     province6 NVARCHAR(MAX),
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL, 
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -319,8 +309,6 @@ def check_data_base(conn, cursor, tables):
                     phone NVARCHAR(12) NOT NULL,
                     data_table1 NVARCHAR(MAX),
                     data_table2 NVARCHAR(MAX),
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL, 
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -345,8 +333,6 @@ def check_data_base(conn, cursor, tables):
                     uni9 NVARCHAR(MAX),
                     uni10 NVARCHAR(MAX),
                     uni11 NVARCHAR(MAX),
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL,  
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -364,8 +350,6 @@ def check_data_base(conn, cursor, tables):
                     majors NVARCHAR(MAX),
                     universities NVARCHAR(MAX),
                     deleted_chains NVARCHAR(MAX),
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL, 
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -385,8 +369,6 @@ def check_data_base(conn, cursor, tables):
                     trash_list NVARCHAR(MAX),
                     hoshmand_list NVARCHAR(MAX),
                     is_hoshmand  BIT DEFAULT 0,
-                    ins_id INT NOT NULL,
-                    con_id INT NOT NULL, 
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
                 )
@@ -521,8 +503,6 @@ def check_data_base(conn, cursor, tables):
                     end_point NCHAR(100),
                     func_name NCHAR(100),
                     data NVARCHAR(MAX),
-                    ins_id INT,
-                    con_id INT, 
                     error_p NVARCHAR(MAX),         
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
@@ -540,8 +520,6 @@ def check_data_base(conn, cursor, tables):
                     sp NVARCHAR(MAX),
                     sp_input NVARCHAR(MAX),
                     data NVARCHAR(MAX),
-                    ins_id INT,
-                    con_id INT, 
                     error_p NVARCHAR(MAX),         
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE(),
@@ -594,7 +572,9 @@ conn_db = pyodbc.connect(
 cursor_db = conn_db.cursor()
 
 drop_all_tables(conn_db, cursor_db,
-                ['spfr', 'trfr', 'spfrb', 'trfrb'])
+                ['spfr', 'trfr', 'spfrb', 'trfrb', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
+                 'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
+                 'hoshmand_info', 'hoshmand_logs', 'hoshmand_sp_logs'])
 check_data_base(conn_db, cursor_db,
                 ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',

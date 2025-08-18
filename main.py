@@ -154,6 +154,8 @@ async def update_api(request: Request):
             return update_consultant(conn, cursor, order_data["data"], info)
         elif action == "update_student_info":
             return update_student_info(conn, cursor, order_data["data"], info)
+        elif action == "update_student_consult":
+            return update_student_consult(conn, cursor, order_data["data"], info)
         elif action == "update_password":
             return update_password(conn, cursor, order_data["data"], info)
         elif action == "update_student_access":

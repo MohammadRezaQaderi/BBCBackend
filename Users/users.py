@@ -15,10 +15,11 @@ from Users.Hoshmand.hoshmand import change_hoshmand_info, change_hoshmand_questi
     change_hoshmand_major, change_hoshmand_province, change_hoshmand_tables, change_hoshmand_chains, \
     change_hoshmand_fields, change_hoshmand_sp_list, get_hoshmand_questions, get_hoshmand_examtype, get_hoshmand_major, \
     get_hoshmand_province, get_hoshmand_tables, get_hoshmand_chains, get_hoshmand_chain_code, get_hoshmand_fields, \
-    get_hoshmand_sp_list, get_hoshmand_list
+    get_hoshmand_sp_list, get_hoshmand_list, get_hoshmand_info
 from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins_user_profile, update_ins_password, \
     select_new_ins_dashboard, select_ins_consultant, select_ins_cons_stu, select_ins_student, update_ins_con, \
-    select_ins_student_pf, select_ins_report_pf, update_ins_stu_access, update_ins_ag_access, update_ins_permission
+    select_ins_student_pf, select_ins_report_pf, update_ins_stu_access, update_ins_ag_access, update_ins_permission, \
+    update_ins_stu_con
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data, \
     select_student_info
@@ -142,7 +143,6 @@ def update_user(conn, cursor, order_data, info):
         else:
             return {"status": 200, "tracking_code": token, "method_type": method_type,
                     "response": {"message": message}}
-
     elif info.get("role") == "stu":
         token, message, data = update_stu_user_profile(conn, cursor, order_data, info)
         cursor.close()
@@ -183,6 +183,21 @@ def update_password(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "شما به این متد دسترسی ندارید."}
+
+
+def update_student_consult(conn, cursor, order_data, info):
+    method_type = "UPDATE"
+    if info["role"] == "ins":
+        token = update_ins_stu_con(conn, cursor, order_data, info)
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "response": {"message": "مشاور دانش‌آموز شما تغییر یافت."}}
+    else:
+        cursor.close()
+        conn.close()
+        return {"status": 200, "tracking_code": None, "method_type": method_type,
+                "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
 
 
 def update_student_info(conn, cursor, order_data, info):
@@ -923,7 +938,7 @@ def select_hoshmand_info(conn, cursor, data, info):
 
 def select_hoshmand_questions(conn, cursor, data, info):
     method_type = "SELECT"
-    token, info = get_hoshmand_questions(conn, cursor, data, info)
+    token, info_response = get_hoshmand_questions(conn, cursor, data, info)
     cursor.close()
     conn.close()
     return {

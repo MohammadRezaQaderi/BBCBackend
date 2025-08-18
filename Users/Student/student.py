@@ -77,6 +77,8 @@ def select_student_data(conn, cursor, order_data, info):
         else:
             s = {
                 "name": f"{res_stu.first_name} {res_stu.last_name}",
+                "first_name": res_stu.first_name,
+                "last_name": res_stu.last_name,
                 "user_id": order_data["stu_id"],
                 "phone": res_stu.phone,
                 "sex": res_stu.sex,

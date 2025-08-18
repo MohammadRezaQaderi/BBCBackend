@@ -537,7 +537,7 @@ def get_hoshmand_major(conn, cursor, data, info):
             user_data = json.loads(hoshmand_data.data)
         update_step_hoshmand(conn, cursor, 3, info["user_id"])
         token = str(uuid.uuid4())
-        return token, majors, exam_types
+        return token, majors, hoshmand_examtypes.examtypes
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
@@ -867,7 +867,7 @@ def get_hoshmand_chains(conn, cursor, data, info):
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
                     info["user_id"], info["phone"], "Create_Chanis_new", json.dumps(values, ensure_ascii=False),
-                    json.dumps(order_data, ensure_ascii=False), str(e))
+                    json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
 
@@ -898,7 +898,7 @@ def get_hoshmand_chains(conn, cursor, data, info):
                 hoshmand_data.deleted_chains) if hoshmand_data and hoshmand_data.deleted_chains else []
         update_step_hoshmand(conn, cursor, 6, info["user_id"])
         token = str(uuid.uuid4())
-        return token, chains, deleted_chains
+        return token, processed_chains, deleted_chains
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
@@ -922,7 +922,7 @@ def get_hoshmand_chain_code(conn, cursor, data, info):
             field += "," + str(5)
         sql = 'exec Note.smart.Get_Chain_Fields_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
         values = (
-            field, student.quota, order_data["codes"], student.rank,
+            field, student.quota, data["codes"], student.rank,
             1, 1000, 1404, None, None, None
         )
         recs = []
@@ -934,7 +934,7 @@ def get_hoshmand_chain_code(conn, cursor, data, info):
             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
             values_log = (
                 info["user_id"], info["phone"], "Get_Chain_Fields_new", json.dumps(values, ensure_ascii=False),
-                json.dumps(order_data, ensure_ascii=False), str(e))
+                json.dumps(data, ensure_ascii=False), str(e))
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                    values=values_log)
 
@@ -1005,7 +1005,7 @@ def get_hoshmand_fields(conn, cursor, data, info):
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
                     info["user_id"], info["phone"], "Get_Fields_By_Chains_new", json.dumps(values, ensure_ascii=False),
-                    json.dumps(order_data, ensure_ascii=False), str(e))
+                    json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
             for res in recs:
@@ -1147,7 +1147,7 @@ def get_hoshmand_list(conn, cursor, data, info):
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
                     info["user_id"], info["phone"], "Delete_Fields", json.dumps(values, ensure_ascii=False),
-                    json.dumps(order_data, ensure_ascii=False), str(e))
+                    json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
             except Exception as e:

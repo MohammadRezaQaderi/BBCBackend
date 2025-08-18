@@ -1,5 +1,4 @@
 import uuid
-import redis
 import json
 from datetime import datetime
 
@@ -491,7 +490,6 @@ def update_ins_con(conn, cursor, order_data, info):
             return token, "اطلاعات مشاور با موفقیت تغییر یافت."
         else:
             return None, "اطلاعات کاربر تغییر نیافت."
-
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
@@ -501,6 +499,29 @@ def update_ins_con(conn, cursor, order_data, info):
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, None
+
+
+def update_ins_stu_con(conn, cursor, order_data, info):
+    try:
+        row_count = db_helper.update_record(
+            conn, cursor, "stu", ['con_id', 'gl_limit', 'glf_limit', 'fr_limit', 'editor_id', 'edited_time'],
+            [order_data["con_id"], order_data["gl_limit"], order_data["glf_limit"], order_data["fr_limit"],
+             info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [order_data["stu_id"]]
+        )
+        if row_count > 0:
+            token = str(uuid.uuid4())
+            return token, "اطلاعات مشاور دانش‌آموز با موفقیت تغییر یافت."
+        else:
+            return None, "اطلاعات کاربر تغییر نیافت."
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/ins", "update_ins_stu_con",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, "اطلاعات کاربر تغییر نیافت."
 
 
 def select_ins_report_pf(conn, cursor, order_data, info):
@@ -689,22 +710,7 @@ def select_ins_report_pf(conn, cursor, order_data, info):
 #     return token
 #
 #
-# def update_ins_stu_con(conn, cursor, order_data, info):
-#     query = 'SELECT hCon_id FROM con WHERE user_id = ?'
-#     res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["con_id"])
-#     if res_con:
-#         row_count = db_helper.update_record(
-#             conn, cursor, "stu", ['con_id', 'hCon_id', 'gl_limit', 'glf_limit', 'fr_limit', 'editor_id', 'edited_time'],
-#             [order_data["con_id"], res_con[0], order_data["gl_limit"], order_data["glf_limit"], order_data["fr_limit"],
-#              info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [order_data["stu_id"]]
-#         )
-#         if row_count > 0:
-#             token = str(uuid.uuid4())
-#             return token, "اطلاعات مشاور دانش‌آموز با موفقیت تغییر یافت."
-#         else:
-#             return None, "اطلاعات کاربر تغییر نیافت."
-#     return None, "اطلاعات مشاور دردسترس نمی‌باشد."
-#
+
 #
 # def insert_ins_stu_speed(conn, cursor, order_data):
 #     if order_data["kind"] == "major":

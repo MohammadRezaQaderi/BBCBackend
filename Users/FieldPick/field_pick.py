@@ -552,12 +552,14 @@ def search_fields_fr(conn, cursor, data, info):
         cursor.commit()
         for res in recs:
             response = {
-                'filedCode': int(str(res[9]) + str(res[1])), 'field': res[2], 'city': res[3], 'university': res[0],
-                'selfGoverning': 'خودگردان' if res[5] == 1 else 'غیر خودگردان',
-                "branch": res[4],
-                'sex': res[6], 'partTime': res[7],
-                'dorm': res[8], 'first': res[10], 'second': 0 if res[11] is None else res[11],
-                'admissionKind': res.Acceptance
+                'filedCode': int(str(res.UniversityCode) + str(res.MajorCode)), 'field': res.Major,
+                'city': res.Province,
+                'university': res.University,
+                'selfGoverning': 'خودگردان' if res.SelfGoverning == 1 else 'غیر خودگردان',
+                "branch": res.Group,
+                'sex': res.Gender, 'partTime': res.PartTime,
+                'admissionKind': res.Acceptance,
+                'dorm': res.Dorm, 'first': res.First, 'second': 0 if res.Second is None else res.Second
             }
             fields.append(response)
         return tracking_code, fields, ""
@@ -871,10 +873,11 @@ def search_fields_frb(conn, cursor, data, info):
         cursor.commit()
         for res in recs:
             response = {
-                'filedCode': int(str(res[7]) + str(res[1])), 'field': res[2], 'city': res[3], 'university': res[0],
-                'sex': res[4], 'partTime': res[5],
-                'dorm': res[6],
-                'admissionKind': res.Acceptance
+                'filedCode': int(str(res.UniversityCode) + str(res.MajorCode)), 'field': res.Major,
+                'city': res.Province,
+                'university': res.University,
+                'sex': res.Gender, 'partTime': res.PartTime,
+                'dorm': res.Dorm
             }
             fields.append(response)
         return tracking_code, fields, ""

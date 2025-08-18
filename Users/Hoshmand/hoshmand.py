@@ -676,8 +676,8 @@ def get_hoshmand_tables(conn, cursor, data, info, stu_phone):
         hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         query_student = 'select sex, field, city, rank_zaban, rank_honar, lock from stu where user_id = ?'
         student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
-        if student.lock == 0:
-            return None, None, None, None, 0
+        # if student.lock == 0:
+        #     return None, None, None, None, 0
         query_examtype = 'select examtypes from hoshmand_examtype where user_id = ?'
         examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=data["stu_id"])
         exam_types = examtypes_result.examtypes.split(',') if examtypes_result and examtypes_result.examtypes else []

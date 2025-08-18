@@ -268,7 +268,7 @@ def search_fields(conn, cursor, data, info):
         second_field = data["secondField"]
         native_province = data["nativeProvince"]
         query = 'SELECT rank_zaban, rank_honar, finalized FROM stu WHERE user_id = ?'
-        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
         if second_field != "NULL":
@@ -503,7 +503,7 @@ def search_fields_fr(conn, cursor, data, info):
         field = data["field"]
         second_field = data["secondField"]
         query = 'SELECT rank_zaban, rank_honar, finalized FROM stu WHERE user_id = ?'
-        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
 
@@ -578,21 +578,21 @@ def update_spfr(conn, cursor, data, info):
     values = ()
     try:
         special_list = data["special_list"]
-        query = 'SELECT field FROM stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        query = 'SELECT field, phone FROM stu WHERE user_id = ?'
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_student is None:
             return None, "اطلاعات شما یافت نشد."
         query = 'SELECT list_id FROM spfr WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        field = '([user_id], [field], [special_list], [phone])'
+        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
+        field = '([user_id], [field], [special_list], [editor_id], [phone])'
         if res_list is not None:
             db_helper.delete_record(
                 conn, cursor, "spfr",
                 ["user_id"],
-                [info["user_id"]]
+                [data["stu_id"]]
             )
         values = (
-            info["user_id"], res_student[0], special_list, info["phone"],)
+            data["stu_id"], res_student.field, special_list, info["user_id"], res_student.phone,)
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='spfr', fields=field,
                                values=values)
         token = str(uuid.uuid4())
@@ -612,15 +612,15 @@ def update_spfr(conn, cursor, data, info):
 def get_spfr(conn, cursor, data, info):
     try:
         query = 'SELECT field FROM stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_student is None:
             return None, []
         query = 'SELECT special_list FROM spfr WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         token = str(uuid.uuid4())
         if res_list is None:
             return token, []
-        return token, json.loads(res_list[0])
+        return token, json.loads(res_list.special_list)
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
@@ -637,21 +637,21 @@ def update_trfr(conn, cursor, data, info):
     values = ()
     try:
         trash_list = data["trash_list"]
-        query = 'SELECT field FROM stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        query = 'SELECT field, phone FROM stu WHERE user_id = ?'
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_student is None:
             return None, "اطلاعات شما یافت نشد."
         query = 'SELECT list_id FROM trfr WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
-        field = '([user_id], [field], [trash_list], [phone])'
+        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
+        field = '([user_id], [field], [trash_list], [editor_id], [phone])'
         if res_list is not None:
             db_helper.delete_record(
                 conn, cursor, "trfr",
                 ["user_id"],
-                [info["user_id"]]
+                [data["stu_id"]]
             )
         values = (
-            info["user_id"], res_student[0], trash_list, info["phone"],)
+            data["stu_id"], res_student.field, trash_list, info["user_id"], res_student.phone)
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='trfr', fields=field,
                                values=values)
         token = str(uuid.uuid4())
@@ -670,16 +670,16 @@ def update_trfr(conn, cursor, data, info):
 
 def get_trfr(conn, cursor, data, info):
     try:
-        query = 'SELECT field, phone FROM stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        query = 'SELECT field FROM stu WHERE user_id = ?'
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_student is None:
             return None, []
         query = 'SELECT trash_list FROM trfr WHERE user_id = ?'
-        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_list = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         token = str(uuid.uuid4())
         if res_list is None:
             return token, []
-        return token, json.loads(res_list[0])
+        return token, json.loads(res_list.trash_list)
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
@@ -833,7 +833,7 @@ def search_fields_frb(conn, cursor, data, info):
         dorm = data["Dorm"]
         field = data["field"]
         query = 'SELECT finalized FROM stu WHERE user_id = ?'
-        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_user = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_user is None:
             return None, None, "این دانش‌آموز ثبت نشده است."
         fields = []
@@ -897,21 +897,25 @@ def update_spfrb(conn, cursor, data, info):
         part = data["part"]
         field_stu = data["field"]
         special_list = data["special_list"]
+        query = 'SELECT phone FROM stu WHERE user_id = ?'
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
+        if res_student is None:
+            return None, "اطلاعات شما یافت نشد."
         res_list = db_helper.multi_search_table(
             conn, cursor, "spfrb",
-            ["list_id"],
+            ["list_id", "phone"],
             ["user_id", "part", "field"],
-            [info["user_id"], part, field_stu]
+            [data["stu_id"], part, field_stu]
         )
-        field = '([user_id], [field], [part], [special_list], [phone])'
+        field = '([user_id], [field], [part], [special_list], [phone], [editor_id])'
         if res_list is not None:
             db_helper.delete_record(
                 conn, cursor, "spfrb",
                 ["user_id", "part", "field"],
-                [info["user_id"], part, field_stu],
+                [data["stu_id"], part, field_stu],
             )
         values = (
-            info["user_id"], field_stu, part, special_list, info["user_id"],)
+            data["stu_id"], field_stu, part, special_list, res_student.phone, info["user_id"],)
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='spfrb', fields=field,
                                values=values)
         token = str(uuid.uuid4())
@@ -932,20 +936,20 @@ def get_spfrb(conn, cursor, data, info):
     try:
         field = data["field"]
         part = data["part"]
-        query = 'SELECT field, phone FROM stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        query = 'SELECT field FROM stu WHERE user_id = ?'
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_student is None:
             return None, []
         res_list = db_helper.multi_search_table(
             conn, cursor, "spfrb",
             ["special_list"],
             ["user_id", "part", "field"],
-            [info["user_id"], part, field]
+            [data["stu_id"], part, field]
         )
         token = str(uuid.uuid4())
         if res_list is None:
             return token, []
-        return token, json.loads(res_list[0])
+        return token, json.loads(res_list.special_list)
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
@@ -964,21 +968,25 @@ def update_trfrb(conn, cursor, data, info):
         part = data["part"]
         field_stu = data["field"]
         trash_list = data["trash_list"]
+        query = 'SELECT phone FROM stu WHERE user_id = ?'
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
+        if res_student is None:
+            return None, "اطلاعات شما یافت نشد."
         res_list = db_helper.multi_search_table(
             conn, cursor, "trfrb",
-            ["list_id"],
+            ["list_id", "phone"],
             ["user_id", "part", "field"],
-            [info["user_id"], part, field_stu]
+            [data["stu_id"], part, field_stu]
         )
-        field = '([user_id], [field], [part], [trash_list], [phone])'
+        field = '([user_id], [field], [part], [trash_list], [phone], [editor_id])'
         if res_list is not None:
             db_helper.delete_record(
                 conn, cursor, "trfrb",
                 ["user_id", "part", "field"],
-                [info["user_id"], part, field_stu]
+                [data["stu_id"], part, field_stu]
             )
         values = (
-            info["user_id"], field_stu, part, trash_list, info["user_id"],)
+            data["stu_id"], field_stu, part, trash_list, res_student.phone, info["user_id"],)
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='trfrb', fields=field,
                                values=values)
         token = str(uuid.uuid4())
@@ -1000,14 +1008,14 @@ def get_trfrb(conn, cursor, data, info):
         field = data["field"]
         part = data["part"]
         query = 'SELECT phone FROM stu WHERE user_id = ?'
-        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_student = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if res_student is None:
             return None, []
         res_list = db_helper.multi_search_table(
             conn, cursor, "trfrb",
             ["trash_list"],
             ["user_id", "part", "field"],
-            [info["user_id"], part, field]
+            [data["stu_id"], part, field]
         )
         token = str(uuid.uuid4())
         if res_list is None:

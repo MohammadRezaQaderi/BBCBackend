@@ -131,7 +131,6 @@ def check_data_base(conn, cursor, tables):
             conn.commit()
             print(f"The {table} table has been created.")
 
-
         elif table == "spfr":
             cursor.execute("""
                  CREATE TABLE spfr (
@@ -140,6 +139,7 @@ def check_data_base(conn, cursor, tables):
                      phone NVARCHAR(12) NOT NULL,
                      field INT NOT NULL,
                      special_list NVARCHAR(MAX) NOT NULL,
+                     editor_id INT NOT NULL,
                      created_time DATETIME DEFAULT GETDATE(),
                      edited_time DATETIME DEFAULT GETDATE()
                  )
@@ -155,8 +155,7 @@ def check_data_base(conn, cursor, tables):
                      phone NVARCHAR(12) NOT NULL,
                      field INT NOT NULL,
                      trash_list NVARCHAR(MAX) NOT NULL,
-                     ins_id INT NOT NULL,
-                     con_id INT NOT NULL,
+                     editor_id INT NOT NULL,
                      created_time DATETIME DEFAULT GETDATE(),
                      edited_time DATETIME DEFAULT GETDATE()
                  )
@@ -173,8 +172,7 @@ def check_data_base(conn, cursor, tables):
                      field INT NOT NULL,
                      special_list NVARCHAR(MAX) NOT NULL,
                      part INT NOT NULL,
-                     ins_id INT NOT NULL,
-                     con_id INT NOT NULL,
+                     editor_id INT NOT NULL,
                      created_time DATETIME DEFAULT GETDATE(),
                      edited_time DATETIME DEFAULT GETDATE()
                  )
@@ -191,8 +189,7 @@ def check_data_base(conn, cursor, tables):
                      field INT NOT NULL,
                      trash_list NVARCHAR(MAX) NOT NULL,
                      part INT NOT NULL,
-                     ins_id INT NOT NULL,
-                     con_id INT NOT NULL,
+                     editor_id INT NOT NULL,
                      created_time DATETIME DEFAULT GETDATE(),
                      edited_time DATETIME DEFAULT GETDATE()
                  )
@@ -597,11 +594,7 @@ conn_db = pyodbc.connect(
 cursor_db = conn_db.cursor()
 
 drop_all_tables(conn_db, cursor_db,
-                ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
-                 'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
-                 'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
-                 'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
-                 'redis_log', 'error_log', 'api_logs', 'hoshmand_sp_logs'])
+                ['spfr', 'trfr', 'spfrb', 'trfrb'])
 check_data_base(conn_db, cursor_db,
                 ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',

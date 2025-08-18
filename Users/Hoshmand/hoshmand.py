@@ -534,7 +534,7 @@ def get_hoshmand_major(conn, cursor, data, info, stu_phone):
             user_data = json.loads(hoshmand_data.data)
         update_step_hoshmand(conn, cursor, 3, data["stu_id"])
         token = str(uuid.uuid4())
-        return token, majors, hoshmand_examtypes.examtypes
+        return token, majors, user_data
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'

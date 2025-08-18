@@ -442,7 +442,7 @@ def get_hoshmand_examtype(conn, cursor, data, info, stu_phone):
         exam_types = []
         sql = 'exec Note.smart.Get_TypeExamTurns_new ?, ?, ?, ?, ?, ?, ?'
         values = (
-            field, student.sex, student.city.split(",")[0], None, 1404, str(question.obligation), str(question.method)
+            field, student.sex, student.city.split(",")[1], None, 1404, str(question.obligation), str(question.method)
         )
         recs = []
         is_empty = 0
@@ -510,7 +510,7 @@ def get_hoshmand_major(conn, cursor, data, info, stu_phone):
             field += "," + str(5)
         sql = 'exec Note.smart.Get_Majors_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
         values = (
-            field, student.sex, student.city.split(",")[0], hoshmand_examtypes.examtypes, None, 1404,
+            field, student.sex, student.city.split(",")[1], hoshmand_examtypes.examtypes, None, 1404,
             str(question.obligation),
             str(question.method), None, None
         )
@@ -572,7 +572,7 @@ def get_hoshmand_province(conn, cursor, data, info, stu_phone):
                 field += "," + str(5)
             sql = 'exec Note.smart.Get_Provinces_new ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
-                field, student.sex, student.city.split(",")[0],
+                field, student.sex, student.city.split(",")[1],
                 examtype_res.examtypes if examtype_res.examtypes else None,
                 majors_res.majors if majors_res.majors else None, None, 1404, str(question.obligation),
                 str(question.method)
@@ -693,7 +693,7 @@ def get_hoshmand_tables(conn, cursor, data, info, stu_phone):
             majors = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=data["stu_id"])
             sql = 'exec Note.smart.Get_Major_TypeExamTurn_Block_States_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
-                field_state, student.sex, student.city.split(",")[0],
+                field_state, student.sex, student.city.split(",")[1],
                 examtypes_result.examtypes if examtypes_result else None,
                 majors.major1, majors.major2, majors.major3, majors.major4, 1404, str(question.obligation),
                 str(question.method)
@@ -726,7 +726,7 @@ def get_hoshmand_tables(conn, cursor, data, info, stu_phone):
             values = (
                 field_state, student.sex,
                 examtypes_result.examtypes if examtypes_result else None,
-                majors.majors, student.city.split(",")[0], province.province1, province.province2, province.province3,
+                majors.majors, student.city.split(",")[1], province.province1, province.province2, province.province3,
                 province.province4, province.province5,
                 1404,
                 str(question.obligation), str(question.method)
@@ -776,7 +776,7 @@ def get_hoshmand_tables(conn, cursor, data, info, stu_phone):
                                    values=values)
             sql = 'exec Note.smart.Get_University_TypeExamTurn_Block_States_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
-                field_state, student.sex, student.city.split(",")[0],
+                field_state, student.sex, student.city.split(",")[1],
                 examtypes_result.examtypes if examtypes_result else None,
                 uni[0], uni[1], uni[2], uni[3], uni[4], uni[5], uni[6], uni[7], uni[8], uni[9], uni[10], 1404,
                 str(question.obligation), str(question.method)
@@ -852,7 +852,7 @@ def get_hoshmand_chains(conn, cursor, data, info, stu_phone):
             sql = 'exec Note.smart.Create_Chanis_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
                 data["stu_id"], student.quota, field, student.sex,
-                student.city.split(",")[0], str(question.obligation), str(question.method), 1404, sorting_major_uni,
+                student.city.split(",")[1], str(question.obligation), str(question.method), 1404, sorting_major_uni,
                 "BBC"
             )
             recs = []

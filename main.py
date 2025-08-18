@@ -725,8 +725,8 @@ async def update_user_ins_file(
         generate_random_name = str(uuid.uuid4())
         new_file_name = generate_random_name + "." + pic.filename.split(".")[1]
         pic.filename = new_file_name
-        file_path = f"D:/WebSites/BBC/Media/UserPic/{pic.filename}"
-        last_path = f"D:/WebSites/BBC/Media/UserPic/{last_pic}"
+        file_path = f"D:/WebSites/BBC/Media/InsPic/{pic.filename}"
+        last_path = f"D:/WebSites/BBC/Media/InsPic/{last_pic}"
         data = {"name": name, "pic": pic.filename}
         if info.get("role") == "ins":
             token, data, message = update_user_ins_pic(conn, cursor, data, info)
@@ -763,7 +763,7 @@ async def update_user_ins_file(
 
 @app.get("/bbc_api/get_user_pic/{filename}")
 async def get_user_pic(filename: str):
-    file_path = os.path.join('D:/WebSites/BBC/Media/UserPic/' + filename)
+    file_path = os.path.join('D:/WebSites/BBC/Media/InsPic/' + filename)
     return FileResponse(file_path, filename=filename)
 
 

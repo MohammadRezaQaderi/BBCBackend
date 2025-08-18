@@ -108,7 +108,7 @@ class ReportScheduler:
             )
             logo_path = None
             if student.logo:
-                base_dir_pic = r'D:\WebSites\BBC\Media\UserPic'
+                base_dir_pic = r'D:\WebSites\BBC\Media\InsPic'
                 logo_path = os.path.join(base_dir_pic, student.logo)
             if not student:
                 raise ValueError(f"Student with ID {user_id} not found")

@@ -346,7 +346,7 @@ def update_student_permission(conn, cursor, order_data, info):
 
 def student_info(conn, cursor, order_data, info):
     method_type = "SELECT"
-    token, dash_info, message = select_student_info(conn, cursor, info)
+    token, dash_info, message = select_student_info(conn, cursor, order_data["user_id"])
     if not token:
         return {"status": 200, "tracking_code": token, "method_type": method_type,
                 "error": message}

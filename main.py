@@ -154,10 +154,6 @@ async def update_api(request: Request):
             return update_consultant(conn, cursor, order_data["data"], info)
         elif action == "update_student_info":
             return update_student_info(conn, cursor, order_data["data"], info)
-        elif action == "select_student_field_info":
-            return select_student_field_info(conn, cursor, order_data["data"], info)
-        elif action == "select_student_field_info_pdf":
-            return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
         elif action == "update_student_consult":
             return update_student_consult(conn, cursor, order_data["data"], info)
         elif action == "update_password":
@@ -232,6 +228,10 @@ async def select_api(request: Request):
             return select_stu_pf_list(conn, cursor, order_data["data"], info)
         elif action == "select_report":
             return select_stu_report_list(conn, cursor, order_data["data"], info)
+        elif action == "select_student_field_info":
+            return select_student_field_info(conn, cursor, order_data["data"], info)
+        elif action == "select_student_field_info_pdf":
+            return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
         # elif action == "select_student_info":
         #     return select_stu_info(conn, cursor, order_data["data"], info)
         # elif action == "select_student_field_info":

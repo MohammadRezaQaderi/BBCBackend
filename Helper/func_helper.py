@@ -102,3 +102,13 @@ def delete_unneeded_table(conn, cursor, tables, id):
             ["user_id"],
             [str(id)]
         )
+
+
+def check_product_availability(kind, user_access):
+    if kind == "hoshmand":
+        if user_access[1] == 0:
+            return False
+    elif kind == "FR":
+        if user_access[2] == 0:
+            return False
+    return True

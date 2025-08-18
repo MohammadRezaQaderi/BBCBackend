@@ -115,6 +115,83 @@ def select_student_data(conn, cursor, order_data, info):
         return None, None
 
 
+def select_stu_fp_info(conn, cursor, order_data, info):
+    try:
+        query = '''
+                    SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number, 
+                       rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
+                       full_number_honar, rank_all_honar, finalized, ins_id, ag_pf
+                    FROM stu 
+                    WHERE user_id = ?
+                       '''
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        query = 'SELECT probability_permission FROM ins WHERE user_id = ?'
+        res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.ins_id)
+        probability_show = res_ins.probability_permission
+        token = str(uuid.uuid4())
+        stu_info = {"first_name": res.first_name, 'last_name': res.last_name, 'sex': res.sex,
+                    'birth_date': res.birth_date, 'city': res.city,
+                    'field': res.field, 'quota': res.quota,
+                    'full_number': res.full_number, 'rank': res.rank,
+                    'rank_all': res.rank_all, 'last_rank': res.last_rank, 'finalized': res.finalized,
+                    'rank_zaban': res.rank_zaban, 'full_number_zaban': res.full_number_zaban,
+                    'rank_all_zaban': res.rank_all_zaban, 'rank_honar': res.rank_honar,
+                    'full_number_honar': res.full_number_honar, 'rank_all_honar': res.rank_all_honar,
+                    "probability_show": probability_show,
+                    "AGAccess": res.ag_pf}
+        return token, stu_info
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/stu", "select_stu_fp_info",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
+
+
+def select_stu_fp_field(conn, cursor, order_data, info):
+    try:
+        query = '''
+                    SELECT user_id, first_name, last_name, phone, sex, city, birth_date, field, quota, full_number, 
+                       rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar,
+                       full_number_honar, rank_all_honar, finalized, ins_id, con_id, con_finalized, ag_pf
+                    FROM stu 
+                    WHERE user_id = ?
+                       '''
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        query = 'SELECT user_id, first_name, last_name FROM con WHERE user_id = ?'
+        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.con_id)
+        query = 'SELECT name, probability_permission FROM ins WHERE user_id = ?'
+        res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.ins_id)
+        con_name = ""
+        if res_con and len(res_con) >= 3:
+            con_name = f"{res_con.first_name} {res_con.last_name}"
+        token = str(uuid.uuid4())
+        stu_info = {"first_name": res.first_name, 'last_name': res.last_name, 'sex': res.sex,
+                    'birth_date': res.birth_date, 'city': res.city,
+                    'field': res.field, 'quota': res.quota,
+                    'full_number': res.full_number, 'rank': res.rank,
+                    'rank_all': res.rank_all, 'last_rank': res.last_rank, 'finalized': res.finalized,
+                    'rank_zaban': res.rank_zaban, 'full_number_zaban': res.full_number_zaban,
+                    'rank_all_zaban': res.rank_all_zaban, 'rank_honar': res.rank_honar,
+                    'full_number_honar': res.full_number_honar, 'rank_all_honar': res.rank_all_honar,
+                    "institute_name": res_ins.name, "c_id": res_con.user_id,
+                    "c_name": con_name, "con_finalized": res.con_finalized,
+                    "probability_show": res_ins.probability_permission,
+                    "AGAccess": res.ag_pf}
+        return token, stu_info
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            info.get("user_id"), info.get("phone"), "bbc_api/stu", "select_stu_fp_field",
+            json.dumps(order_data, ensure_ascii=False), str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
+
 def update_stu_user_profile(conn, cursor, order_data, info):
     try:
         row_count = db_helper.update_record(

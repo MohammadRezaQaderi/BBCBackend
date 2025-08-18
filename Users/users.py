@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 from Helper import db_helper
+from Helper.func_helper import check_product_availability
 from Users.Auth.auth import check_signin, token_remove
 from Users.Consultant.consultant import insert_con_stu, update_con_user_profile, update_con_password, \
     select_con_dashboard, select_con_student, select_con_student_pf, select_con_report_pf
@@ -22,7 +23,7 @@ from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins
     update_ins_stu_con
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data, \
-    select_student_info
+    select_student_info, select_stu_fp_info, select_stu_fp_field
 
 AUTHORIZED_ROLES = {"ins", "con", "stu"}
 
@@ -42,6 +43,32 @@ def check_user_request(conn, cursor, order_data, info):
         if info.get("user_id") != int(order_data["stu_id"]):
             return False
     return True
+
+
+def check_user_request_product(conn, cursor, order_data, info):
+    kind = order_data["kind"]
+    if info["role"] == "ins":
+        query = 'SELECT ins_id, hoshmand_access, fr_access FROM stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        if not check_product_availability(kind, res):
+            return False, "No Access", 401
+        if res[0] != info["user_id"]:
+            return False, "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد.", 402
+    elif info["role"] == "con":
+        query = 'SELECT con_id, hoshmand_access, fr_access FROM stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        if not check_product_availability(kind, res):
+            return False, "No Access", 401
+        if res[0] != info["user_id"]:
+            return False, "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد.", 402
+    else:
+        query = 'SELECT user_id, hoshmand_access, fr_access FROM stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=order_data["stu_id"])
+        if not check_product_availability(kind, res):
+            return False, "No Access", 401
+        if info["user_id"] != int(order_data["stu_id"]):
+            return False, "اطلاعات دریافتی از  شما دارای مشکل می‌باشد.", 402
+    return True, "", 200
 
 
 def delete_token(conn, cursor, data, info):
@@ -464,6 +491,36 @@ def select_stu_report_list(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
+
+
+def select_student_field_info(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    request_check, message, status_code = check_user_request_product(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": status_code, "tracking_code": None, "method_type": method_type,
+                "error": message}
+    token, dash_info = select_stu_fp_info(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"data": dash_info}}
+
+
+def select_student_field_info_pdf(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    request_check, message, status_code = check_user_request_product(conn, cursor, order_data, info)
+    if not request_check:
+        cursor.close()
+        conn.close()
+        return {"status": status_code, "tracking_code": None, "method_type": method_type,
+                "error": message}
+    token, dash_info = select_stu_fp_field(conn, cursor, order_data, info)
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"data": dash_info}}
 
 
 # Field Pick API

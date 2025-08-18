@@ -1079,7 +1079,7 @@ def get_hoshmand_sp_list(conn, cursor, data, info, stu_phone):
                 '''
         hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         # todo here check user info con ins check
-        token, dash_info, message = select_student_info(conn, cursor, info)
+        token, dash_info, message = select_student_info(conn, cursor, data["stu_id"])
         update_step_hoshmand(conn, cursor, 8, data["stu_id"])
         token = str(uuid.uuid4())
         trash_list = json.loads(hoshmand_data.trash_list) if hoshmand_data.trash_list else []

@@ -18,6 +18,7 @@ def select_student_info(conn, cursor, user_id):
         if not res:
             return token, None
         student_info = {
+            "role": "stu",
             "stu_id": res.stu_id,
             "user_id": user_id,
             "first_name": res.first_name,

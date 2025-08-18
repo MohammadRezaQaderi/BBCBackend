@@ -232,13 +232,6 @@ async def select_api(request: Request):
             return select_student_field_info(conn, cursor, order_data["data"], info)
         elif action == "select_student_field_info_pdf":
             return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
-        # elif action == "select_student_info":
-        #     return select_stu_info(conn, cursor, order_data["data"], info)
-        # elif action == "select_student_field_info":
-        #     return select_student_field_info(conn, cursor, order_data["data"], info)
-        # elif action == "select_student_field_info_pdf":
-        #     return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
-        ######
         elif action == "select_student_info":
             return student_info(conn, cursor, order_data["data"], info)
         else:

@@ -710,7 +710,6 @@ async def select_api(request: Request):
 async def update_user_ins_file(
         pic: UploadFile = Form(...),
         name: str = Form(...),
-        user_id: int = Form(...),
         last_pic: str = Form(...),
         token: str = Form(...),
 ):

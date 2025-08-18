@@ -322,7 +322,7 @@ async def delete_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-@app.post("/fieldpick_api/update_request")
+@app.post("/bbc_fieldpick_api/update_request")
 async def update_api(request: Request):
     method_type = "UPDATE"
     try:
@@ -379,7 +379,7 @@ async def update_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-@app.post("/fieldpick_api/select_request")
+@app.post("/bbc_fieldpick_api/select_request")
 async def select_api(request: Request):
     method_type = "SELECT"
     try:
@@ -468,7 +468,7 @@ async def select_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-@app.post("/quiz_api/update_request")
+@app.post("/bbc_quiz_api/update_request")
 async def update_api(request: Request):
     method_type = "UPDATE"
     try:
@@ -519,7 +519,7 @@ async def update_api(request: Request):
                 "error": "مشکلی در ارتباط با سرویس‌ها پیش آمده است. درحال بررسی هستیم."}
 
 
-@app.post("/quiz_api/select_request")
+@app.post("/bbc_quiz_api/select_request")
 async def select_api(request: Request):
     method_type = "SELECT"
     try:

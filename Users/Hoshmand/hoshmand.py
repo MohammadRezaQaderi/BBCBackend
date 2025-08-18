@@ -346,7 +346,7 @@ def change_hoshmand_sp_list(conn, cursor, data, info, stu_phone):
         return None, "مشکلی در دخیره اطلاعات رخ داده است."
 
 
-def get_hoshmand_info(conn, cursor, data, info):
+def get_hoshmand_info(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                     SELECT 
@@ -355,11 +355,11 @@ def get_hoshmand_info(conn, cursor, data, info):
                     FROM hoshmand_info 
                     WHERE user_id = ?
                     '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if not hoshmand_data:
             field = '([user_id], [phone])'
             values = (
-                info["user_id"], info["phone"])
+                data["stu_id"], stu_phone)
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_info', fields=field,
                                    values=values)
         info_response = {
@@ -372,14 +372,14 @@ def get_hoshmand_info(conn, cursor, data, info):
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_info",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_info",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None
 
 
-def get_hoshmand_questions(conn, cursor, data, info):
+def get_hoshmand_questions(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                 SELECT 
@@ -391,11 +391,11 @@ def get_hoshmand_questions(conn, cursor, data, info):
                 FROM hoshmand_questions 
                 WHERE user_id = ?
                 '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if not hoshmand_data:
             field = '([user_id], [phone], [examtype], [univercity], [major], [obligation], [method])'
             values = (
-                info["user_id"], info["phone"], 3, 3, 3,
+                data["stu_id"], stu_phone, 3, 3, 3,
                 '0,1', 'با آزمون,صرفا با سوابق تحصیلی')
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_questions', fields=field,
                                    values=values)
@@ -406,21 +406,21 @@ def get_hoshmand_questions(conn, cursor, data, info):
             "obligation": hoshmand_data.obligation if hoshmand_data else '0,1',
             "method": hoshmand_data.method if hoshmand_data else 'با آزمون,صرفا با سوابق تحصیلی',
         }
-        update_step_hoshmand(conn, cursor, 1, info["user_id"])
+        update_step_hoshmand(conn, cursor, 1, data["stu_id"])
         token = str(uuid.uuid4())
         return token, info_response
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_questions",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_questions",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None
 
 
-def get_hoshmand_examtype(conn, cursor, data, info):
+def get_hoshmand_examtype(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                     SELECT 
@@ -429,11 +429,11 @@ def get_hoshmand_examtype(conn, cursor, data, info):
                     FROM hoshmand_examtype 
                     WHERE user_id = ?
                 '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         query_question = 'select obligation, method from hoshmand_questions where user_id = ?'
-        question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+        question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=data["stu_id"])
         query_student = 'select sex, field, city, rank_zaban, rank_honar from stu where user_id = ?'
-        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
         field = str(student.field)
         if student.rank_zaban != 0 and student.rank_zaban:
             field += "," + str(4)
@@ -454,7 +454,7 @@ def get_hoshmand_examtype(conn, cursor, data, info):
             is_empty = 2
             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
             values_log = (
-                info["user_id"], info["phone"], "Get_TypeExamTurns_new", json.dumps(values, ensure_ascii=False),
+                data["stu_id"], stu_phone, "Get_TypeExamTurns_new", json.dumps(values, ensure_ascii=False),
                 json.dumps(data, ensure_ascii=False), str(e))
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                    values=values_log)
@@ -466,21 +466,21 @@ def get_hoshmand_examtype(conn, cursor, data, info):
             user_data = None
         else:
             user_data = json.loads(hoshmand_data[0])
-        update_step_hoshmand(conn, cursor, 2, info["user_id"])
+        update_step_hoshmand(conn, cursor, 2, data["stu_id"])
         token = str(uuid.uuid4())
         return token, is_empty, exam_types, user_data
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_examtype",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_examtype",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, 2, None, None
 
 
-def get_hoshmand_major(conn, cursor, data, info):
+def get_hoshmand_major(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                     SELECT 
@@ -489,7 +489,7 @@ def get_hoshmand_major(conn, cursor, data, info):
                     FROM hoshmand_major 
                     WHERE user_id = ?
                     '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         query_examtypes = '''
                     SELECT 
                         examtypes
@@ -497,11 +497,11 @@ def get_hoshmand_major(conn, cursor, data, info):
                     WHERE user_id = ?
                     '''
         hoshmand_examtypes = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtypes,
-                                                    field=info["user_id"])
+                                                    field=data["stu_id"])
         query_question = 'select obligation, method from hoshmand_questions where user_id = ?'
-        question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+        question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=data["stu_id"])
         query_student = 'select sex, field, city, rank_zaban, rank_honar from stu where user_id = ?'
-        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
         majors = []
         field = str(student.field)
         if student.rank_zaban != 0 and student.rank_zaban:
@@ -522,7 +522,7 @@ def get_hoshmand_major(conn, cursor, data, info):
         except Exception as e:
             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
             values_log = (
-                info["user_id"], info["phone"], "Get_Majors_new", json.dumps(values, ensure_ascii=False),
+                data["stu_id"], stu_phone, "Get_Majors_new", json.dumps(values, ensure_ascii=False),
                 json.dumps(data, ensure_ascii=False), str(e))
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                    values=values_log)
@@ -532,21 +532,21 @@ def get_hoshmand_major(conn, cursor, data, info):
             user_data = None
         else:
             user_data = json.loads(hoshmand_data.data)
-        update_step_hoshmand(conn, cursor, 3, info["user_id"])
+        update_step_hoshmand(conn, cursor, 3, data["stu_id"])
         token = str(uuid.uuid4())
         return token, majors, hoshmand_examtypes.examtypes
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_major",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_major",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None, None
 
 
-def get_hoshmand_province(conn, cursor, data, info):
+def get_hoshmand_province(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                     SELECT 
@@ -554,17 +554,17 @@ def get_hoshmand_province(conn, cursor, data, info):
                     FROM hoshmand_province 
                     WHERE user_id = ?
                     '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         query_student = 'select sex, field, city, rank_zaban, rank_honar from stu where user_id = ?'
-        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
         majors = []
         if not hoshmand_data:
             query_majors = 'select majors from hoshmand_major where user_id = ?'
-            majors_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info["user_id"])
+            majors_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=data["stu_id"])
             query_examtype = 'select examtypes from hoshmand_examtype where user_id = ?'
-            examtype_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info["user_id"])
+            examtype_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=data["stu_id"])
             query_question = 'select obligation, method from hoshmand_questions where user_id = ?'
-            question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+            question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=data["stu_id"])
             field = str(student.field)
             if student.rank_zaban != 0 and student.rank_zaban:
                 field += "," + str(4)
@@ -585,7 +585,7 @@ def get_hoshmand_province(conn, cursor, data, info):
             except Exception as e:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Get_Provinces_new", json.dumps(values, ensure_ascii=False),
+                    data["stu_id"], stu_phone, "Get_Provinces_new", json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
@@ -638,7 +638,7 @@ def get_hoshmand_province(conn, cursor, data, info):
 
             field = '([user_id], [phone], [data], [province1], [province2], [province3], [province4], [province5], [province6])'
             values = (
-                info["user_id"], info["phone"], json.dumps(user_data, ensure_ascii=False), province1,
+                data["stu_id"], stu_phone, json.dumps(user_data, ensure_ascii=False), province1,
                 province2, province3, province4, province5, ""
             )
             db_helper.insert_value(
@@ -650,21 +650,21 @@ def get_hoshmand_province(conn, cursor, data, info):
             )
         else:
             user_data = json.loads(hoshmand_data.data)
-        update_step_hoshmand(conn, cursor, 4, info["user_id"])
+        update_step_hoshmand(conn, cursor, 4, data["stu_id"])
         token = str(uuid.uuid4())
         return token, majors, user_data
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_province",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_province",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None, None
 
 
-def get_hoshmand_tables(conn, cursor, data, info):
+def get_hoshmand_tables(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                     SELECT 
@@ -673,16 +673,16 @@ def get_hoshmand_tables(conn, cursor, data, info):
                     FROM hoshmand_tables 
                     WHERE user_id = ?
                     '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         query_student = 'select sex, field, city, rank_zaban, rank_honar, lock from stu where user_id = ?'
-        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
         if student.lock == 0:
             return None, None, None, None, 0
         query_examtype = 'select examtypes from hoshmand_examtype where user_id = ?'
-        examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=info["user_id"])
+        examtypes_result = db_helper.search_table(conn=conn, cursor=cursor, query=query_examtype, field=data["stu_id"])
         exam_types = examtypes_result.examtypes.split(',') if examtypes_result and examtypes_result.examtypes else []
         query_question = 'select obligation, method from hoshmand_questions where user_id = ?'
-        question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+        question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=data["stu_id"])
         if not hoshmand_data:
             field_state = str(student.field)
             if student.rank_zaban != 0 and student.rank_zaban:
@@ -690,7 +690,7 @@ def get_hoshmand_tables(conn, cursor, data, info):
             if student.rank_honar != 0 and student.rank_honar:
                 field_state += "," + str(5)
             query_majors = 'select major1, major2, major3, major4, majors from hoshmand_major where user_id = ?'
-            majors = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=info["user_id"])
+            majors = db_helper.search_table(conn=conn, cursor=cursor, query=query_majors, field=data["stu_id"])
             sql = 'exec Note.smart.Get_Major_TypeExamTurn_Block_States_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
                 field_state, student.sex, student.city.split(",")[0],
@@ -705,7 +705,7 @@ def get_hoshmand_tables(conn, cursor, data, info):
             except Exception as e:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Get_Major_TypeExamTurn_Block_States_new",
+                    data["stu_id"], stu_phone, "Get_Major_TypeExamTurn_Block_States_new",
                     json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
@@ -721,7 +721,7 @@ def get_hoshmand_tables(conn, cursor, data, info):
                     exam_idx = exam_type_index[exam_type]
                     skills_table[category - 1]["values"][exam_idx] = 1
             query_province = 'select province1, province2, province3, province4, province5 from hoshmand_province where user_id = ?'
-            province = db_helper.search_table(conn=conn, cursor=cursor, query=query_province, field=info["user_id"])
+            province = db_helper.search_table(conn=conn, cursor=cursor, query=query_province, field=data["stu_id"])
             sql = 'exec Note.smart.Get_University_Blocks_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
                 field_state, student.sex,
@@ -738,7 +738,7 @@ def get_hoshmand_tables(conn, cursor, data, info):
             except Exception as e:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Get_University_Blocks_new", json.dumps(values, ensure_ascii=False),
+                    data["stu_id"], stu_phone, "Get_University_Blocks_new", json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
@@ -761,16 +761,16 @@ def get_hoshmand_tables(conn, cursor, data, info):
                     uni[category - 1] = ",".join(uni_dict[category])
                     universities_table[category - 1]["data"] = uni[category - 1]
             query_uni = 'select id from hoshmand_universities where user_id = ?'
-            uni_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_uni, field=info["user_id"])
+            uni_res = db_helper.search_table(conn=conn, cursor=cursor, query=query_uni, field=data["stu_id"])
             if uni_res:
                 db_helper.delete_record(
                     conn, cursor, 'hoshmand_universities',
                     ["user_id"],
-                    [str(info["user_id"])]
+                    [str(data["stu_id"])]
                 )
             field = '([user_id], [phone], [uni1], [uni2], [uni3], [uni4], [uni5], [uni6], [uni7], [uni8], [uni9], [uni10], [uni11])'
             values = (
-                info["user_id"], info["phone"], uni[0], uni[1], uni[2], uni[3], uni[4], uni[5], uni[6], uni[7], uni[8],
+                data["stu_id"], stu_phone, uni[0], uni[1], uni[2], uni[3], uni[4], uni[5], uni[6], uni[7], uni[8],
                 uni[9], uni[10])
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_universities', fields=field,
                                    values=values)
@@ -788,7 +788,7 @@ def get_hoshmand_tables(conn, cursor, data, info):
             except Exception as e:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Get_University_TypeExamTurn_Block_States_new",
+                    data["stu_id"], stu_phone, "Get_University_TypeExamTurn_Block_States_new",
                     json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
@@ -799,7 +799,7 @@ def get_hoshmand_tables(conn, cursor, data, info):
                     universities_table[category - 1]["values"][exam_idx] = 1
             field = '([user_id], [phone], [data_table1], [data_table2])'
             values = (
-                info["user_id"], info["phone"], json.dumps(skills_table, ensure_ascii=False),
+                data["stu_id"], stu_phone, json.dumps(skills_table, ensure_ascii=False),
                 json.dumps(universities_table, ensure_ascii=False)
             )
             db_helper.insert_value(
@@ -812,21 +812,21 @@ def get_hoshmand_tables(conn, cursor, data, info):
         else:
             universities_table = json.loads(hoshmand_data.data_table2)
             skills_table = json.loads(hoshmand_data.data_table1)
-        update_step_hoshmand(conn, cursor, 5, info["user_id"])
+        update_step_hoshmand(conn, cursor, 5, data["stu_id"])
         token = str(uuid.uuid4())
         return token, skills_table, universities_table, exam_types, student.lock
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_tables",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_tables",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None, None, None, None
 
 
-def get_hoshmand_chains(conn, cursor, data, info):
+def get_hoshmand_chains(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                    SELECT 
@@ -835,12 +835,12 @@ def get_hoshmand_chains(conn, cursor, data, info):
                    FROM hoshmand_chains 
                    WHERE user_id = ?
                    '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if not hoshmand_data:
             query_student = 'select sex, field, city, rank_zaban, rank_honar, quota from stu where user_id = ?'
-            student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+            student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
             query_question = 'select obligation, method, univercity, major from hoshmand_questions where user_id = ?'
-            question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=info["user_id"])
+            question = db_helper.search_table(conn=conn, cursor=cursor, query=query_question, field=data["stu_id"])
             field = str(student.field)
             if student.rank_zaban != 0 and student.rank_zaban:
                 field += "," + str(4)
@@ -851,7 +851,7 @@ def get_hoshmand_chains(conn, cursor, data, info):
                 sorting_major_uni = True
             sql = 'exec Note.smart.Create_Chanis_new ?, ?, ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
-                info["user_id"], student.quota, field, student.sex,
+                data["stu_id"], student.quota, field, student.sex,
                 student.city.split(",")[0], str(question.obligation), str(question.method), 1404, sorting_major_uni,
                 "BBC"
             )
@@ -863,7 +863,7 @@ def get_hoshmand_chains(conn, cursor, data, info):
             except Exception as e:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Create_Chanis_new", json.dumps(values, ensure_ascii=False),
+                    data["stu_id"], stu_phone, "Create_Chanis_new", json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
@@ -884,7 +884,7 @@ def get_hoshmand_chains(conn, cursor, data, info):
                         processed_chains = []
             field = '([user_id], [phone], [chains], [deleted_chains])'
             values = (
-                info["user_id"], info["phone"], json.dumps(processed_chains, ensure_ascii=False),
+                data["stu_id"], stu_phone, json.dumps(processed_chains, ensure_ascii=False),
                 json.dumps([], ensure_ascii=False))
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_chains', fields=field,
                                    values=values)
@@ -893,24 +893,24 @@ def get_hoshmand_chains(conn, cursor, data, info):
             processed_chains = json.loads(hoshmand_data.chains)
             deleted_chains = json.loads(
                 hoshmand_data.deleted_chains) if hoshmand_data and hoshmand_data.deleted_chains else []
-        update_step_hoshmand(conn, cursor, 6, info["user_id"])
+        update_step_hoshmand(conn, cursor, 6, data["stu_id"])
         token = str(uuid.uuid4())
         return token, processed_chains, deleted_chains
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_chains",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_chains",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None, None
 
 
-def get_hoshmand_chain_code(conn, cursor, data, info):
+def get_hoshmand_chain_code(conn, cursor, data, info, stu_phone):
     try:
         query_student = 'select sex, field, city, rank, quota, rank_zaban, rank_honar from stu where user_id = ?'
-        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
         fields = []
         field = str(student.field)
         if student.rank_zaban != 0 and student.rank_zaban:
@@ -930,7 +930,7 @@ def get_hoshmand_chain_code(conn, cursor, data, info):
         except Exception as e:
             field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
             values_log = (
-                info["user_id"], info["phone"], "Get_Chain_Fields_new", json.dumps(values, ensure_ascii=False),
+                data["stu_id"], stu_phone, "Get_Chain_Fields_new", json.dumps(values, ensure_ascii=False),
                 json.dumps(data, ensure_ascii=False), str(e))
             db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                    values=values_log)
@@ -954,14 +954,14 @@ def get_hoshmand_chain_code(conn, cursor, data, info):
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_chain_code",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_chain_code",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None
 
 
-def get_hoshmand_fields(conn, cursor, data, info):
+def get_hoshmand_fields(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                     SELECT 
@@ -972,12 +972,12 @@ def get_hoshmand_fields(conn, cursor, data, info):
                     FROM hoshmand_fields 
                     WHERE user_id = ?
                     '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         if not hoshmand_data:
             query_student = 'select sex, field, city, rank, quota, rank_zaban, rank_honar from stu where user_id = ?'
-            student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+            student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
             query = 'SELECT suggested, other FROM hedayat_fields WHERE user_id = ?'
-            res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+            res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
             suggested_fields = None
             other_fields = None
             if res_hedayat is not None:
@@ -991,7 +991,7 @@ def get_hoshmand_fields(conn, cursor, data, info):
             fields = []
             sql = 'exec Note.smart.Get_Fields_By_Chains_new ?, ?, ?, ?, ?, ?, ?, ?'
             values = (
-                info["user_id"], field, student.quota, student.rank, 1404, suggested_fields, other_fields, "BBC"
+                data["stu_id"], field, student.quota, student.rank, 1404, suggested_fields, other_fields, "BBC"
             )
             recs = []
             try:
@@ -1001,7 +1001,7 @@ def get_hoshmand_fields(conn, cursor, data, info):
             except Exception as e:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Get_Fields_By_Chains_new", json.dumps(values, ensure_ascii=False),
+                    data["stu_id"], stu_phone, "Get_Fields_By_Chains_new", json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
@@ -1027,8 +1027,8 @@ def get_hoshmand_fields(conn, cursor, data, info):
                 empty_list_json = str(empty_list_json) if empty_list_json else ''
                 field = '([user_id], [phone], [all_list], [field_list], [selected_list], [trash_list], [hoshmand_list])'
                 values = (
-                    info["user_id"],
-                    info["phone"],
+                    data["stu_id"],
+                    stu_phone,
                     field_json,
                     field_json,
                     empty_list_json,
@@ -1053,21 +1053,21 @@ def get_hoshmand_fields(conn, cursor, data, info):
             fields = json.loads(hoshmand_data.field_list)
             selected_list = json.loads(hoshmand_data.selected_list)
             is_hoshmand = True if hoshmand_data.is_hoshmand == 1 else False
-        update_step_hoshmand(conn, cursor, 7, info["user_id"])
+        update_step_hoshmand(conn, cursor, 7, data["stu_id"])
         token = str(uuid.uuid4())
         return token, fields, selected_list, is_hoshmand
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_fields",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_fields",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None, None, False
 
 
-def get_hoshmand_sp_list(conn, cursor, data, info):
+def get_hoshmand_sp_list(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                 SELECT 
@@ -1077,10 +1077,10 @@ def get_hoshmand_sp_list(conn, cursor, data, info):
                 FROM hoshmand_fields 
                 WHERE user_id = ?
                 '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         # todo here check user info con ins check
         token, dash_info, message = select_student_info(conn, cursor, info)
-        update_step_hoshmand(conn, cursor, 8, info["user_id"])
+        update_step_hoshmand(conn, cursor, 8, data["stu_id"])
         token = str(uuid.uuid4())
         trash_list = json.loads(hoshmand_data.trash_list) if hoshmand_data.trash_list else []
         selected_list = json.loads(hoshmand_data.selected_list)
@@ -1090,23 +1090,23 @@ def get_hoshmand_sp_list(conn, cursor, data, info):
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_sp_list",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_sp_list",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
         return None, None, None, None, None
 
 
-def get_hoshmand_list(conn, cursor, data, info):
+def get_hoshmand_list(conn, cursor, data, info, stu_phone):
     try:
         query = '''
                 SELECT chains
                 FROM hoshmand_chains 
                 WHERE user_id = ?
             '''
-        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         query_student = 'select field, rank, quota, rank_zaban, rank_honar from stu where user_id = ?'
-        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=info["user_id"])
+        student = db_helper.search_table(conn=conn, cursor=cursor, query=query_student, field=data["stu_id"])
         field = str(student.field)
         if student.rank_zaban != 0 and student.rank_zaban:
             field += "," + str(4)
@@ -1114,7 +1114,7 @@ def get_hoshmand_list(conn, cursor, data, info):
             field += "," + str(5)
         code_reshteh_list = []
         query = 'SELECT suggested, other FROM hedayat_fields WHERE user_id = ?'
-        res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info["user_id"])
+        res_hedayat = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=data["stu_id"])
         suggested_fields = None
         other_fields = None
         if res_hedayat is not None:
@@ -1143,7 +1143,7 @@ def get_hoshmand_list(conn, cursor, data, info):
             try:
                 field_log = '([user_id], [phone], [sp], [sp_input], [data], [error_p])'
                 values_log = (
-                    info["user_id"], info["phone"], "Delete_Fields", json.dumps(values, ensure_ascii=False),
+                    data["stu_id"], stu_phone, "Delete_Fields", json.dumps(values, ensure_ascii=False),
                     json.dumps(data, ensure_ascii=False), str(e))
                 db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_sp_logs', fields=field_log,
                                        values=values_log)
@@ -1172,7 +1172,7 @@ def get_hoshmand_list(conn, cursor, data, info):
                 [1, json.dumps(fields, ensure_ascii=False),
                  json.dumps(fields, ensure_ascii=False),
                  datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-                "user_id = ?", [str(info["user_id"])]
+                "user_id = ?", [str(data["stu_id"])]
             )
         except Exception as e:
             print(">>>>>> exception", e)
@@ -1186,7 +1186,7 @@ def get_hoshmand_list(conn, cursor, data, info):
                 FROM hoshmand_fields 
                 WHERE user_id = ?
                 '''
-            hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=str(info["user_id"]))
+            hoshmand_data = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=str(data["stu_id"]))
         except Exception as e:
             print(">>>>>> ", e)
         token = str(uuid.uuid4())
@@ -1197,7 +1197,7 @@ def get_hoshmand_list(conn, cursor, data, info):
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
         values_log = (
-            info.get("user_id"), info.get("phone"), "hoshmand_api/hoshmand", "get_hoshmand_list",
+            data["stu_id"], stu_phone, "hoshmand_api/hoshmand", "get_hoshmand_list",
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)

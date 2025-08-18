@@ -346,10 +346,10 @@ def update_student_permission(conn, cursor, order_data, info):
 
 def student_info(conn, cursor, order_data, info):
     method_type = "SELECT"
-    token, dash_info, message = select_student_info(conn, cursor, order_data["user_id"])
+    token, dash_info = select_student_info(conn, cursor, order_data.get("user_id"))
     if not token:
         return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "error": message}
+                "error": "اطلاعات شما یافت نشد. لطفا از مشاور خود پیگیری کنید."}
     cursor.close()
     conn.close()
     return {"status": 200, "tracking_code": token, "method_type": method_type,

@@ -234,6 +234,8 @@ async def select_api(request: Request):
             return select_student_field_info_pdf(conn, cursor, order_data["data"], info)
         elif action == "select_student_info":
             return student_info(conn, cursor, order_data["data"], info)
+        elif action == "select_student_info_ag":
+            return student_info(conn, cursor, order_data["data"], info)
         else:
             print("select action >>>>>>>>>>>>>>>>>>>>", action)
             return {"status": 405, "tracking_code": None, "method_type": None,

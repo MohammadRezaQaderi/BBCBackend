@@ -61,6 +61,43 @@ def select_student_info(conn, cursor, user_id):
         return None, None
 
 
+def select_student_info_ag(conn, cursor, user_id):
+    try:
+        query = 'SELECT stu_id, first_name, last_name, sex, city, birth_date, field, quota, rank, lock, finalized, ag_access, ag_pdf, ag_pf FROM stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
+        token = str(uuid.uuid4())
+        if not res:
+            return token, None
+        student_info = {
+            "role": "stu",
+            "stu_id": res.stu_id,
+            "user_id": user_id,
+            "first_name": res.first_name,
+            "last_name": res.last_name,
+            "sex": res.sex,
+            "city": res.city,
+            "birth_date": res.birth_date,
+            "field": res.field,
+            "quota": res.quota,
+            "rank": res.rank,
+            "lock": res.lock,
+            "finalized": res.finalized,
+            "ag_pdf": res.ag_pdf,
+            "ag_access": res.ag_access,
+            "ag_pf": res.ag_pf,
+        }
+        return token, student_info
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            user_id, None, "bbc_api/stu", "select_student_info",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None, None
+
+
 def select_student_data(conn, cursor, order_data, info):
     try:
         query = '''
@@ -192,6 +229,7 @@ def select_stu_fp_field(conn, cursor, order_data, info):
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, None
+
 
 def update_stu_user_profile(conn, cursor, order_data, info):
     try:

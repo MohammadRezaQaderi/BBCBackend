@@ -23,7 +23,7 @@ from Users.Institute.institute import insert_ins_con, insert_ins_stu, update_ins
     update_ins_stu_con
 from Users.Quiz.quiz import submit_quiz_answer, select_stu_quiz_table_info, select_stu_quiz_info
 from Users.Student.student import update_stu_user_profile, update_stu_password, update_stu_info, select_student_data, \
-    select_student_info, select_stu_fp_info, select_stu_fp_field
+    select_student_info, select_stu_fp_info, select_stu_fp_field, select_student_info_ag
 
 AUTHORIZED_ROLES = {"ins", "con", "stu"}
 
@@ -346,8 +346,19 @@ def update_student_permission(conn, cursor, order_data, info):
 
 def student_info(conn, cursor, order_data, info):
     method_type = "SELECT"
-    print(info)
     token, dash_info = select_student_info(conn, cursor, order_data.get("user_id"))
+    if not token:
+        return {"status": 200, "tracking_code": token, "method_type": method_type,
+                "error": "اطلاعات شما یافت نشد. لطفا از مشاور خود پیگیری کنید."}
+    cursor.close()
+    conn.close()
+    return {"status": 200, "tracking_code": token, "method_type": method_type,
+            "response": {"data": dash_info}}
+
+
+def student_info_ag(conn, cursor, order_data, info):
+    method_type = "SELECT"
+    token, dash_info = select_student_info_ag(conn, cursor, order_data.get("user_id"))
     if not token:
         return {"status": 200, "tracking_code": token, "method_type": method_type,
                 "error": "اطلاعات شما یافت نشد. لطفا از مشاور خود پیگیری کنید."}
@@ -1269,7 +1280,8 @@ def select_hoshmand_sp_list(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
-    token, trash_list, selected_list, hoshmand_list, dash_info = get_hoshmand_sp_list(conn, cursor, order_data, info, stu_phone)
+    token, trash_list, selected_list, hoshmand_list, dash_info = get_hoshmand_sp_list(conn, cursor, order_data, info,
+                                                                                      stu_phone)
     cursor.close()
     conn.close()
     return {

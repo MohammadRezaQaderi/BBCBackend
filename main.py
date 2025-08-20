@@ -787,7 +787,7 @@ async def get_pic_info_field(filename: str):
     return FileResponse(file_path, filename=filename)
 
 
-@app.get("/quiz_api/get_report_student/{phone}")
+@app.get("/bbc_quiz_api/get_report_student/{phone}")
 async def get_report(phone: str):
     conn, cursor = await db_connection()
     query = 'SELECT user_id FROM stu WHERE phone = ?'
@@ -816,7 +816,7 @@ async def get_report(phone: str):
             raise HTTPException(status_code=404, detail="File not found")
 
 
-@app.get("/quiz_api/get_pic_info/quiz/{filename}")
+@app.get("/bbc_quiz_api/get_pic_info/quiz/{filename}")
 async def get_pic_info_field(filename: str):
     file_path = os.path.join('D:/WebSites/BBC/Pics/Quiz/' + filename)
     if os.path.exists(file_path):
@@ -825,7 +825,7 @@ async def get_pic_info_field(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
 
 
-@app.get("/quiz_api/get_quiz_pic/{filename}")
+@app.get("/bbc_quiz_api/get_quiz_pic/{filename}")
 async def get_quiz_pic(filename: str):
     file_path = os.path.join('D:/WebSites/BBC/Quiz/' + filename)
     if os.path.exists(file_path):
@@ -834,7 +834,7 @@ async def get_quiz_pic(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
 
 
-@app.get("/quiz_api/get_voice/{filename}")
+@app.get("/bbc_quiz_api/get_voice/{filename}")
 async def get_voice(filename: str):
     file_path = os.path.join('D:/WebSites/NewER/Voices/' + filename)
     if os.path.exists(file_path):

@@ -382,12 +382,12 @@ def new_dash(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": token, "method_type": method_type,
                 "response": {"data": dash_info}}
-    elif info.get("role") == "stu":
-        token, dash_info, finalized = select_stu_dashboard(conn, cursor, order_data)
-        cursor.close()
-        conn.close()
-        return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"data": dash_info, "finalized": finalized}}
+    # elif info.get("role") == "stu":
+    #     token, dash_info, finalized = select_stu_dashboard(conn, cursor, order_data)
+    #     cursor.close()
+    #     conn.close()
+    #     return {"status": 200, "tracking_code": token, "method_type": method_type,
+    #             "response": {"data": dash_info, "finalized": finalized}}
     else:
         cursor.close()
         conn.close()

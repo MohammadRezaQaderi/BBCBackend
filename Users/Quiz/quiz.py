@@ -30,10 +30,10 @@ def submit_quiz_answer(conn, cursor, order_data, info):
                 return None, "this question number is not valid reload qui"
             answers = {order_data["question_Number"]: order_data["question_Answer"]}
             answers_data = json.dumps(answers, ensure_ascii=False)
-            name = get_stu_info(conn, cursor, info["user_id"])
-            field = '([user_id], [phone], [quiz_id], [answers], [state], [name])'
+            name, ins_id, con_id = get_stu_info(conn, cursor, info["user_id"])
+            field = '([user_id], [phone], [quiz_id], [answers], [state], [name], [ins_id], [con_id])'
             values = (
-                info["user_id"], info["phone"], order_data["quiz_id"], answers_data, 1, name,)
+                info["user_id"], info["phone"], order_data["quiz_id"], answers_data, 1, name, ins_id, con_id)
             res_quiz_add_answer = db_helper.insert_value(conn=conn, cursor=cursor, table_name="quiz_answer",
                                                          fields=field, values=values)
         else:
@@ -76,9 +76,9 @@ def submit_quiz_answer(conn, cursor, order_data, info):
 
 
 def get_stu_info(conn, cursor, user_id):
-    query = 'SELECT first_name, last_name FROM stu WHERE user_id = ?'
+    query = 'SELECT first_name, last_name, ins_id, con_id FROM stu WHERE user_id = ?'
     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
-    return res[0] + " " + res[1]
+    return res.first_name + " " + res.last_name, res.ins_id, res.con_id
 
 
 def select_stu_quiz_table_info(conn, cursor, order_data, info):

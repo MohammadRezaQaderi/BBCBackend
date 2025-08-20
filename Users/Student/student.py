@@ -8,7 +8,7 @@ from Helper.func_helper import password_format_check
 
 def select_student_info(conn, cursor, user_id):
     try:
-        query = 'SELECT stu_id, first_name, last_name, sex, city, birth_date, field, quota, full_number, rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar, full_number_honar, rank_all_honar, lock, finalized, hoshmand_access, fr_access, ins_id, con_id FROM stu WHERE user_id = ?'
+        query = 'SELECT stu_id, phone, first_name, last_name, sex, city, birth_date, field, quota, full_number, rank, rank_all, last_rank, rank_zaban, full_number_zaban, rank_all_zaban, rank_honar, full_number_honar, rank_all_honar, lock, finalized, hoshmand_access, fr_access, ins_id, con_id FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=user_id)
         query = 'SELECT name, logo FROM ins WHERE user_id = ?'
         res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.ins_id)
@@ -21,6 +21,7 @@ def select_student_info(conn, cursor, user_id):
             "role": "stu",
             "stu_id": res.stu_id,
             "user_id": user_id,
+            "phone": res.phone,
             "first_name": res.first_name,
             "last_name": res.last_name,
             "sex": res.sex,

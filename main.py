@@ -790,14 +790,14 @@ async def get_pic_info_field(filename: str):
 @app.get("/bbc_quiz_api/get_report_student/{phone}")
 async def get_report(phone: str):
     conn, cursor = await db_connection()
-    query = 'SELECT user_id FROM stu WHERE phone = ?'
+    query = 'SELECT user_id, ag_pdf FROM stu WHERE phone = ?'
     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=phone)
     if res is None:
         raise HTTPException(status_code=320, detail="این دانش‌آموز موجود نیست.")
     else:
-        # if res[1] == 0:
-        #     raise HTTPException(status_code=323,
-        #                         detail="شما به کارنامه‌ی خود دسترسی ندارید موضوع را از مشاور خود پیگیری نمایید.")
+        if res.ag_pdf == 0:
+            raise HTTPException(status_code=323,
+                                detail="شما به کارنامه‌ی خود دسترسی ندارید موضوع را از مشاور خود پیگیری نمایید.")
         query = 'SELECT quiz_id, state FROM quiz_answer WHERE user_id = ? order by edited_time desc'
         res_score = db_helper.search_allin_table(conn=conn, cursor=cursor, query=query, field=res[0])
         if len(res_score) < 7:
@@ -814,6 +814,7 @@ async def get_report(phone: str):
             raise HTTPException(status_code=322, detail="در حال حاضر آزمون‌های شما به پایان نرسیده است.")
         else:
             raise HTTPException(status_code=404, detail="File not found")
+
 
 @app.get("/bbc_quiz_api/get_report/{phone}")
 async def get_report(phone: str):

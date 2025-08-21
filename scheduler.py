@@ -407,7 +407,7 @@ class ReportScheduler:
         
         try:
             while True:
-                user_id = self.redis.lpop("userBBCSReport")
+                user_id = self.redis.lpop("userBBCReport")
                 if user_id is None:
                     logging.debug("No users in queue, sleeping Entekhab BBC...")
                     time.sleep(10)

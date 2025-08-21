@@ -11,7 +11,7 @@ def add_value_to_list(key, value):
 
 
 def main():
-    key = "userERSReport"
+    key = "userBBCReport"
     add_value_to_list(key, 17)
 
 

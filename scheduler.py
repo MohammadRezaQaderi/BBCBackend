@@ -95,25 +95,33 @@ class ReportScheduler:
         except Exception as e:
             logging.error(f"Failed to log error to database: {str(e)}")
 
-    def _get_student_info(self, user_id: str) -> Tuple[Any, str]:
+    def _get_student_info(self, user_id: str) -> Tuple[Any, str, str]:
         """Retrieve student and institute information."""
         try:
             student_query = '''
-                SELECT user_id, phone, first_name, last_name, logo
+                SELECT user_id, phone, first_name, last_name, ins_id
                 FROM stu
                 WHERE user_id = ?
             '''
             student = db_helper.search_table(
                 self.db_conn, self.db_cursor, student_query, user_id
             )
+            ins_query = '''
+                            SELECT logo, name
+                            FROM ins
+                            WHERE user_id = ?
+                        '''
+            ins = db_helper.search_table(
+                self.db_conn, self.db_cursor, student_query, student.ins_id
+            )
             logo_path = None
-            if student.logo:
+            if ins.logo:
                 base_dir_pic = r'D:\WebSites\BBC\Media\InsPic'
-                logo_path = os.path.join(base_dir_pic, student.logo)
+                logo_path = os.path.join(base_dir_pic, ins.logo)
             if not student:
                 raise ValueError(f"Student with ID {user_id} not found")
 
-            return student, logo_path
+            return student, logo_path, ins.name
 
         except Exception as e:
             logging.error(f"Error getting student info: {str(e)}")
@@ -307,7 +315,7 @@ class ReportScheduler:
         try:
             start_time = time.time()
 
-            student, logo_path = self._get_student_info(user_id)
+            student, logo_path, ins_name = self._get_student_info(user_id)
             user_directory = self._create_report_directory(student[1])
 
             db_helper.update_record(
@@ -351,13 +359,14 @@ class ReportScheduler:
             report_pictures, report_info = self._generate_charts(data, categories, user_directory)
             report_info.update({
                 "#name": f"{student[2]} {student[3]}",
+                "#ins_name": f"{ins_name}",
             })
 
             field_matches = self._prepare_field_matches(suggested_other)
 
             report_images = self.report_images.copy()
             if logo_path:
-                report_images.append('image86.jpeg')
+                report_images.append('image87.jpeg')
                 report_pictures.append(logo_path)
 
             generate_word_with_info(
@@ -369,7 +378,8 @@ class ReportScheduler:
                 field_matches,
                 self.fields_benchmark_name,
                 student[1],
-                f"{student[2]} {student[3]}"
+                f"{student[2]} {student[3]}",
+                ins_name
             )
 
             db_helper.update_record(
@@ -394,10 +404,10 @@ class ReportScheduler:
     def run(self) -> None:
         """Main scheduler loop."""
         logging.info("Report scheduler started Entekhab B2c")
-
+        
         try:
             while True:
-                user_id = self.redis.lpop("userERSReport")
+                user_id = self.redis.lpop("userBBCSReport")
                 if user_id is None:
                     logging.debug("No users in queue, sleeping Entekhab B2c...")
                     time.sleep(10)

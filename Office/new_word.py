@@ -516,7 +516,8 @@ def generate_word_with_info(
         fields_matched: list[list[list[str]]],
         fields_benchmark_name: list[list[tuple[str, str]]],
         phone: str,
-        name: str
+        name: str,
+        ins_name: str
 ) -> None:
     """Generate Word document with provided information.
 

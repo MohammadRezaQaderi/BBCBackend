@@ -403,13 +403,13 @@ class ReportScheduler:
 
     def run(self) -> None:
         """Main scheduler loop."""
-        logging.info("Report scheduler started Entekhab B2c")
+        logging.info("Report scheduler started Entekhab BBC")
         
         try:
             while True:
                 user_id = self.redis.lpop("userBBCSReport")
                 if user_id is None:
-                    logging.debug("No users in queue, sleeping Entekhab B2c...")
+                    logging.debug("No users in queue, sleeping Entekhab BBC...")
                     time.sleep(10)
                     continue
 
@@ -427,7 +427,7 @@ class ReportScheduler:
                                            fields=field_log, values=values_log)
                     continue
         except KeyboardInterrupt:
-            logging.info("Scheduler stopped by user Entekhab B2c")
+            logging.info("Scheduler stopped by user Entekhab BBC")
         except Exception as e:
             field_log = '([user_id], [message], [error_p])'
             values_log = (

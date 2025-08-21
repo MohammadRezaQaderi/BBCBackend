@@ -359,7 +359,7 @@ class ReportScheduler:
             report_pictures, report_info = self._generate_charts(data, categories, user_directory)
             report_info.update({
                 "#name": f"{student[2]} {student[3]}",
-                "#ins_name": f"{ins_name}",
+                "#inst_name": f"{ins_name}",
             })
 
             field_matches = self._prepare_field_matches(suggested_other)

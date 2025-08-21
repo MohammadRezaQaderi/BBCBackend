@@ -537,8 +537,8 @@ def generate_word_with_info(
 
     ReplaceTextsInHeaders(
         folder_word,
-        ['#name'],
-        [name]
+        ['#name', "#inst_name"],
+        [name, ins_name]
     )
 
     ReplaceImagesInWordFolder(folder_word, image_name, user_report_picture)

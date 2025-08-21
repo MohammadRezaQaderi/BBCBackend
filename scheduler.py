@@ -112,7 +112,7 @@ class ReportScheduler:
                             WHERE user_id = ?
                         '''
             ins = db_helper.search_table(
-                self.db_conn, self.db_cursor, student_query, student.ins_id
+                self.db_conn, self.db_cursor, ins_query, student.ins_id
             )
             logo_path = None
             if ins.logo:

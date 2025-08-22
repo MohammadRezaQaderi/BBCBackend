@@ -79,7 +79,7 @@ def check_user_request_product(conn, cursor, order_data, info):
 def delete_token(conn, cursor, data, info):
     method_type = "DELETE"
     token = str(uuid.uuid4())
-    res = token_remove(conn, cursor, data)
+    res = token_remove(conn, cursor, data, info)
     if not res:
         return {"status": 200, "tracking_code": token, "method_type": method_type,
                 "response": {"message": "نشد"}}
@@ -1318,72 +1318,3 @@ def select_hoshmand_list(conn, cursor, order_data, info):
         },
         "tracking_code": token
     }
-
-# def update_stu_info(conn, cursor, order_data, info):
-#     method_type = "UPDATE"
-#     if info.get("role") == "ins":
-#         token, message, finalized = update_ins_stu(conn, cursor, order_data, info)
-#         cursor.close()
-#         conn.close()
-#         if token:
-#             return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                     "response": {"message": message, "finalized": finalized}}
-#         else:
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": message}
-#     if info.get("role") == "oCon":
-#         token, message, finalized = update_oCon_stu(conn, cursor, order_data, info)
-#         cursor.close()
-#         conn.close()
-#         if token:
-#             return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                     "response": {"message": message, "finalized": finalized}}
-#         else:
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": message}
-#     elif info.get("role") == "hCon":
-#         token, message, finalized = update_hCon_stu(conn, cursor, order_data, info)
-#         cursor.close()
-#         conn.close()
-#         if token:
-#             return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                     "response": {"message": message, "finalized": finalized}}
-#         else:
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": message}
-#     elif info.get("role") == "con":
-#         token, message, finalized = update_con_stu(conn, cursor, order_data, info)
-#         cursor.close()
-#         conn.close()
-#         if token:
-#             return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                     "response": {"message": message, "finalized": finalized}}
-#         else:
-#             return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                     "error": message}
-#     else:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "مشکلی در اطلاعات شما پیش آمده با پشتیبانی در ارتباط باشید."}
-
-# def accept_check_user_info(conn, cursor, order_data, info):
-#     method_type = "SELECT"
-#     query = 'SELECT finalized FROM stu WHERE user_id = ?'
-#     res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=info.get("user_id"))
-#     if res is None:
-#         cursor.close()
-#         conn.close()
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "اطلاعات دریافتی شما دچار مشکل شده لطفا یکبار خروج کرده و سپس ورود کنید"}
-#     elif res[0] == 0:
-#         return {"status": 200, "tracking_code": None, "method_type": method_type,
-#                 "error": "ابتدا اطلاعات خود را ثبت اولیه نمایید."}
-#     token, dash_info, message = select_student_info(conn, cursor, info)
-#     if not token:
-#         return {"status": 200, "tracking_code": token, "method_type": method_type,
-#                 "error": message}
-#     cursor.close()
-#     conn.close()
-#     return {"status": 200, "tracking_code": token, "method_type": method_type,
-#             "response": {"data": dash_info}}

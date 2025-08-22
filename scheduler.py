@@ -404,7 +404,7 @@ class ReportScheduler:
     def run(self) -> None:
         """Main scheduler loop."""
         logging.info("Report scheduler started Entekhab BBC")
-        
+
         try:
             while True:
                 user_id = self.redis.lpop("userBBCReport")

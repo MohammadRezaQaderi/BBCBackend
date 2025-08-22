@@ -31,12 +31,13 @@ def create_token(conn, cursor, data):
                                values=values_log)
         return None
 
-def token_remove(conn, cursor, data):
+
+def token_remove(conn, cursor, data, info):
     try:
         res = db_helper.delete_record(
             conn, cursor, "tokens",
             ["user_id"],
-            [data["user_id"]]
+            [info["user_id"]]
         )
         return res
     except Exception as e:

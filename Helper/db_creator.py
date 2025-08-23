@@ -119,11 +119,11 @@ def check_data_base(conn, cursor, tables):
                     phone NVARCHAR(12) NOT NULL,
                     name NVARCHAR(200) NOT NULL,
                     hu INT DEFAULT 0,
-                    ha INT DEFAULT 0,
+                    ha INT DEFAULT 10,
                     fru INT DEFAULT 0,
-                    fra INT DEFAULT 0,
+                    fra INT DEFAULT 10,
                     agu INT DEFAULT 0,
-                    aga INT DEFAULT 0,
+                    aga INT DEFAULT 10,
                     created_time DATETIME DEFAULT GETDATE(),
                     edited_time DATETIME DEFAULT GETDATE()
                 )
@@ -584,10 +584,12 @@ conn_db = pyodbc.connect(
 )
 cursor_db = conn_db.cursor()
 
-# drop_all_tables(conn_db, cursor_db,
-#                 ['spfr', 'trfr', 'spfrb', 'trfrb', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
-#                  'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
-#                  'hoshmand_info', 'hoshmand_logs', 'hoshmand_sp_logs'])
+drop_all_tables(conn_db, cursor_db,
+                ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
+                 'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
+                 'hoshmand_province', 'hoshmand_tables', 'hoshmand_universities', 'hoshmand_chains', 'hoshmand_fields',
+                 'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
+                 'redis_log', 'error_log', 'api_logs', 'hoshmand_sp_logs', 'pdf_logs'])
 check_data_base(conn_db, cursor_db,
                 ['users', 'ins', 'con', 'stu', 'capacity', 'spfr', 'trfr', 'spfrb', 'trfrb', 'pickfield_logs',
                  'tokens', 'hoshmand_questions', 'hoshmand_examtype', 'hoshmand_major',
@@ -595,20 +597,20 @@ check_data_base(conn_db, cursor_db,
                  'hoshmand_info', 'hoshmand_logs', 'quiz_answer', 'result_state', 'quiz_logs', 'hedayat_fields',
                  'redis_log', 'error_log', 'api_logs', 'hoshmand_sp_logs', 'pdf_logs'])
 
-# cursor_db.execute("""
-#         INSERT INTO users (phone, password, role)
-#         VALUES (?, ?, ?)
-#     """, ("09216272502", "123456", "ins"))
-# conn_db.commit()
-#
-# cursor_db.execute("""
-#         INSERT INTO ins (user_id, phone, password, name, cap_id)
-#         VALUES (?, ?, ?, ?, ?)
-#     """, (1, "09216272502", "123456", "ins", 1))
-# conn_db.commit()
-#
-# cursor_db.execute("""
-#         INSERT INTO capacity (user_id, phone, name)
-#         VALUES (?, ?, ?)
-#     """, (1, "09216272502", "ins"))
-# conn_db.commit()
+cursor_db.execute("""
+        INSERT INTO users (phone, password, role)
+        VALUES (?, ?, ?)
+    """, ("09216272502", "123456", "ins"))
+conn_db.commit()
+
+cursor_db.execute("""
+        INSERT INTO ins (user_id, phone, password, name, cap_id)
+        VALUES (?, ?, ?, ?, ?)
+    """, (1, "09216272502", "123456", "ins", 1))
+conn_db.commit()
+
+cursor_db.execute("""
+        INSERT INTO capacity (user_id, phone, name)
+        VALUES (?, ?, ?)
+    """, (1, "09216272502", "ins"))
+conn_db.commit()

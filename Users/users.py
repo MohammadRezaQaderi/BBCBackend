@@ -1257,7 +1257,8 @@ def select_hoshmand_fields(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
-    token, fields, selected_list, is_hoshmand = get_hoshmand_fields(conn, cursor, order_data, info, stu_phone)
+    token, fields, selected_list, is_hoshmand, stu_pf_data = get_hoshmand_fields(conn, cursor, order_data, info,
+                                                                                 stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -1267,7 +1268,8 @@ def select_hoshmand_fields(conn, cursor, order_data, info):
         "response": {
             "data": fields,
             "selected_list": selected_list,
-            "is_hoshmand": is_hoshmand
+            "is_hoshmand": is_hoshmand,
+            "stu_pf_data": stu_pf_data
         }
     }
 

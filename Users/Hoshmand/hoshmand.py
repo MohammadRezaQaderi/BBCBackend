@@ -5,7 +5,7 @@ from datetime import datetime
 
 from Helper import db_helper
 from Helper.func_helper import delete_unneeded_table, update_step_hoshmand
-from Users.Student.student import select_student_info
+from Users.Student.student import select_student_info, get_fp_table_limits
 
 uni_info = ["دانشگاه‌های شاخص سراسر کشور", "دانشگاه‌های برتر استان(های) بومی", "سایر دانشگاه‌های استان(های) بومی",
             "دانشگاه‌های برتر استان‌های همسایه", "سایر دانشگاه‌های استان‌های همسایه",
@@ -1054,8 +1054,9 @@ def get_hoshmand_fields(conn, cursor, data, info, stu_phone):
             selected_list = json.loads(hoshmand_data.selected_list)
             is_hoshmand = True if hoshmand_data.is_hoshmand == 1 else False
         update_step_hoshmand(conn, cursor, 7, data["stu_id"])
+        user_info_pf = get_fp_table_limits(conn, cursor, data["stu_id"])
         token = str(uuid.uuid4())
-        return token, fields, selected_list, is_hoshmand
+        return token, fields, selected_list, is_hoshmand, user_info_pf
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
@@ -1064,7 +1065,7 @@ def get_hoshmand_fields(conn, cursor, data, info, stu_phone):
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
-        return None, None, None, False
+        return None, None, None, False, None
 
 
 def get_hoshmand_sp_list(conn, cursor, data, info, stu_phone):

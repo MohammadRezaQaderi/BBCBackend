@@ -218,7 +218,7 @@ def check_data_base(conn, cursor, tables):
                     id INT IDENTITY(1, 1),
                     user_id INT NOT NULL PRIMARY KEY,
                     phone NVARCHAR(12) NOT NULL,
-                    terms_accepted BIT DEFAULT 0,
+                    terms_accepted BIT DEFAULT 1,
                     current_step INT DEFAULT 1,
                     create_chain_times INT DEFAULT 0,           
                     create_chain_hoshmand INT DEFAULT 0,    

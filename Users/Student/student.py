@@ -327,3 +327,22 @@ def update_stu_info(conn, cursor, order_data, info, finalized):
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
                                values=values_log)
         return None, "مشکلی در تغییر اطلاعات پیش آمده", finalized
+
+
+def get_fp_table_limits(conn, cursor, stu_id):
+    try:
+        query = 'SELECT ins_id, ag_pf FROM stu WHERE user_id = ?'
+        res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=stu_id)
+        query = 'SELECT probability_permission FROM ins WHERE user_id = ?'
+        res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.ins_id)
+        info = {"probability_permission": res_ins.probability_permission, "AGAccess": res.ag_pf}
+        return info
+    except Exception as e:
+        conn.rollback()
+        field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
+        values_log = (
+            stu_id, None, "bbc_api/stu", "get_fp_table_limits",
+            None, str(e))
+        db_helper.insert_value(conn=conn, cursor=cursor, table_name='api_logs', fields=field_log,
+                               values=values_log)
+        return None

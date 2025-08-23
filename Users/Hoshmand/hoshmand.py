@@ -1086,7 +1086,8 @@ def get_hoshmand_sp_list(conn, cursor, data, info, stu_phone):
         trash_list = json.loads(hoshmand_data.trash_list) if hoshmand_data.trash_list else []
         selected_list = json.loads(hoshmand_data.selected_list)
         hoshmand_list = json.loads(hoshmand_data.hoshmand_list) if hoshmand_data.hoshmand_list else []
-        return token, trash_list, selected_list, hoshmand_list, dash_info
+        user_info_pf = get_fp_table_limits(conn, cursor, data["stu_id"])
+        return token, trash_list, selected_list, hoshmand_list, dash_info, user_info_pf
     except Exception as e:
         conn.rollback()
         field_log = '([user_id], [phone], [end_point], [func_name], [data], [error_p])'
@@ -1095,7 +1096,7 @@ def get_hoshmand_sp_list(conn, cursor, data, info, stu_phone):
             json.dumps(data, ensure_ascii=False), str(e))
         db_helper.insert_value(conn=conn, cursor=cursor, table_name='hoshmand_logs', fields=field_log,
                                values=values_log)
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
 
 def get_hoshmand_list(conn, cursor, data, info, stu_phone):

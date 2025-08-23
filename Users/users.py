@@ -1282,8 +1282,9 @@ def select_hoshmand_sp_list(conn, cursor, order_data, info):
         conn.close()
         return {"status": 200, "tracking_code": None, "method_type": method_type,
                 "error": "اطلاعات دریافتی از دانش‌آموز شما دارای مشکل می‌باشد."}
-    token, trash_list, selected_list, hoshmand_list, dash_info = get_hoshmand_sp_list(conn, cursor, order_data, info,
-                                                                                      stu_phone)
+    token, trash_list, selected_list, hoshmand_list, dash_info, user_info_pf = get_hoshmand_sp_list(conn, cursor,
+                                                                                                    order_data, info,
+                                                                                                    stu_phone)
     cursor.close()
     conn.close()
     return {
@@ -1294,7 +1295,8 @@ def select_hoshmand_sp_list(conn, cursor, order_data, info):
             "trash_list": trash_list,
             "selected_list": selected_list,
             "hoshmand_list": hoshmand_list,
-            "user_data": dash_info
+            "user_data": dash_info,
+            "user_info_pf": user_info_pf
         }
     }
 

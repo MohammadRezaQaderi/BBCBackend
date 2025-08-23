@@ -504,8 +504,8 @@ def update_ins_con(conn, cursor, order_data, info):
 def update_ins_stu_con(conn, cursor, order_data, info):
     try:
         row_count = db_helper.update_record(
-            conn, cursor, "stu", ['con_id', 'gl_limit', 'glf_limit', 'fr_limit', 'editor_id', 'edited_time'],
-            [order_data["con_id"], order_data["gl_limit"], order_data["glf_limit"], order_data["fr_limit"],
+            conn, cursor, "stu", ['con_id', 'hoshmand_limit', 'fr_limit', 'editor_id', 'edited_time'],
+            [order_data["con_id"], order_data["hoshmand_limit"], order_data["fr_limit"],
              info["user_id"], datetime.now().strftime("%Y-%m-%d %H:%M:%S")], "user_id = ?", [order_data["stu_id"]]
         )
         if row_count > 0:

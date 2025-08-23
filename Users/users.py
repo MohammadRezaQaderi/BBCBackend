@@ -220,11 +220,11 @@ def update_password(conn, cursor, order_data, info):
 def update_student_consult(conn, cursor, order_data, info):
     method_type = "UPDATE"
     if info["role"] == "ins":
-        token = update_ins_stu_con(conn, cursor, order_data, info)
+        token, message = update_ins_stu_con(conn, cursor, order_data, info)
         cursor.close()
         conn.close()
         return {"status": 200, "tracking_code": token, "method_type": method_type,
-                "response": {"message": "مشاور دانش‌آموز شما تغییر یافت."}}
+                "response": {"message": message}}
     else:
         cursor.close()
         conn.close()

@@ -331,11 +331,14 @@ def update_stu_info(conn, cursor, order_data, info, finalized):
 
 def get_fp_table_limits(conn, cursor, stu_id):
     try:
-        query = 'SELECT ins_id, ag_pf FROM stu WHERE user_id = ?'
+        query = 'SELECT ins_id, ag_pf, con_id FROM stu WHERE user_id = ?'
         res = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=stu_id)
-        query = 'SELECT probability_permission FROM ins WHERE user_id = ?'
-        res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query, field=res.ins_id)
-        info = {"probability_permission": res_ins.probability_permission, "AGAccess": res.ag_pf}
+        query_ins = 'SELECT probability_permission, name FROM ins WHERE user_id = ?'
+        res_ins = db_helper.search_table(conn=conn, cursor=cursor, query=query_ins, field=res.ins_id)
+        query_con = 'SELECT first_name, last_name FROM con WHERE user_id = ?'
+        res_con = db_helper.search_table(conn=conn, cursor=cursor, query=query_con, field=res.con_id)
+        info = {"institute_name": res_ins.name, "c_name": f"{res_con.first_name} {res_con.last_name}",
+                "probability_permission": res_ins.probability_permission, "AGAccess": res.ag_pf}
         return info
     except Exception as e:
         conn.rollback()
